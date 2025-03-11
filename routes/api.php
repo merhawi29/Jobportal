@@ -1,6 +1,8 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\JobController;
+use App\Traits\LogsActivity;
 
 Route::middleware(['auth:sanctum'])->group(function () {
 Route::get('/jobs', [JobController::class, 'index']); // List all approved jobs

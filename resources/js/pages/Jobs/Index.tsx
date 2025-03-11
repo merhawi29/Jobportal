@@ -1,20 +1,7 @@
-import React from 'react';
-import { Link } from '@inertiajs/react';
+import React, { FormEvent, useState } from 'react';
+import { Link, router } from '@inertiajs/react';
 import JobCard from '@/components/JobCard';
-
-interface Job {
-    id: number;
-    title: string;
-    company: string;
-    location: string;
-    type: string;
-    salary_range: string;
-    deadline: string;
-    created_at: string;
-    user: {
-        name: string;
-    };
-}
+import { Job } from '@/types';
 
 interface Props {
     jobs: {
@@ -24,22 +11,66 @@ interface Props {
         per_page: number;
         total: number;
     };
+    auth: {
+        user: null | {
+            role: string;
+        };
+    };
+    filters?: {
+        search?: string;
+    };
 }
 
-const Index = ({ jobs }: Props) => {
+const Index = ({ jobs, auth, filters }: Props) => {
+    const [search, setSearch] = useState(filters?.search || '');
+    const canPostJob = auth.user && ['employer', 'moderator', 'admin'].includes(auth.user.role);
+
+    const handleSearch = (e: FormEvent) => {
+        e.preventDefault();
+        router.get(route('jobs.index'), { search }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
     return (
         <div className="bg-light min-vh-100">
             <div className="container py-5">
+                <div className="mb-4">
+                    <Link href={route('home')} className="btn btn-outline-success">
+
+                        <i className="fas fa-arrow-left me-2"></i>
+                        Back to Home
+                    </Link>
+                </div>
+
                 <div className="row mb-4 align-items-center">
                     <div className="col">
                         <h1 className="h2 fw-bold mb-0">Available Jobs</h1>
                     </div>
-                    <div className="col-auto">
-                        <Link href="/jobs/create" className="btn btn-primary">
-                            <i className="fas fa-plus-circle me-2"></i>
-                            Post New Job
-                        </Link>
+                    <div className="col-md-6">
+                        <form onSubmit={handleSearch} className="d-flex gap-2">
+                            <input
+                                type="text"
+                                className="form-control"
+                                placeholder="Search jobs..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                            <button type="submit" className="btn btn-outline-success">
+                                <i className="fas fa-search me-2"></i>
+                                Search
+                            </button>
+                        </form>
                     </div>
+                    {canPostJob && (
+                        <div className="col-auto">
+                            <Link href="/create" className="btn btn-outline-success">
+                                <i className="fas fa-plus-circle me-2"></i>
+                                Post New Job
+                            </Link>
+                        </div>
+                    )}
                 </div>
 
                 <div className="row">
@@ -47,6 +78,12 @@ const Index = ({ jobs }: Props) => {
                         <JobCard key={job.id} job={job} />
                     ))}
                 </div>
+
+                {jobs.data.length === 0 && (
+                    <div className="text-center py-5">
+                        <p className="text-muted">No jobs found</p>
+                    </div>
+                )}
 
                 {/* Pagination */}
                 {jobs.last_page > 1 && (
@@ -59,7 +96,7 @@ const Index = ({ jobs }: Props) => {
                                         className={`page-item ${page === jobs.current_page ? 'active' : ''}`}
                                     >
                                         <Link
-                                            href={`/jobs?page=${page}`}
+                                            href={route('jobs.index', { page, search })}
                                             className="page-link"
                                         >
                                             {page}

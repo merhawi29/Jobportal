@@ -29,7 +29,29 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'role' => 'jobseeker',
+            'status' => 'active'
         ];
+
+        User::factory()->create([
+            'name' => 'moderator',
+            'email' => 'moderator@gmail.com',
+                'password' => Hash::make('password'),
+                'role' => 'moderator',
+                'status' => 'active',
+            ])
+
+
+        [
+            User::factory()->create([
+                'name' => 'admin',
+                'email' => 'admin@gmail.com',
+                'password' => Hash::make('password'),
+                'role' => 'admin',
+                'status' => 'active',
+            ])
+        ]
+        ;
     }
 
     /**

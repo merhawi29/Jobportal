@@ -10,7 +10,8 @@ class JobController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
+        // Only apply auth middleware to specific methods
+        $this->middleware('auth')->only(['create', 'store']);
     }
 
     public function create()
@@ -58,19 +59,51 @@ class JobController extends Controller
 
     public function show(Job $job)
     {
+        $isSaved = false;
+        $hasApplied = false;
+
+        if (auth()->check()) {
+            $isSaved = $job->savedBy()
+                ->where('user_id', auth()->id())
+                ->exists();
+
+            $hasApplied = $job->applications()
+                ->where('user_id', auth()->id())
+                ->exists();
+        }
+
         return Inertia::render('Jobs/Show', [
-            'job' => $job->load('user')
+            'job' => $job->load('user'),
+            'isSaved' => $isSaved,
+            'hasApplied' => $hasApplied
         ]);
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $jobs = Job::with('user')
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+        $query = Job::with('user');
+
+        // Search filter
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('company', 'like', "%{$search}%")
+                  ->orWhere('location', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        // Job type filter
+        if ($request->has('type')) {
+            $query->where('type', $request->type);
+        }
+
+        $jobs = $query->orderBy('created_at', 'desc')->paginate(10);
 
         return Inertia::render('Jobs/Index', [
-            'jobs' => $jobs
+            'jobs' => $jobs,
+            'filters' => $request->only(['search', 'type'])
         ]);
     }
 }

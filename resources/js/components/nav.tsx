@@ -37,6 +37,10 @@ const Nav = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const { auth } = usePage<Props>().props;
     const isModerator = auth?.user?.role === 'moderator';
+    const isJobSeeker = auth?.user?.role === 'job_seeker';
+    const isAuth = auth?.user?.role === 'employer' || auth?.user?.role === 'admin' || auth?.user?.role === 'moderator';
+    const [isOpen, setIsOpen] = useState(false);
+    const [dropdownOpen, setDropdownOpen] = useState(true);
 
     useEffect(() => {
         document.body.style.paddingTop = '80px';
@@ -56,18 +60,18 @@ const Nav = () => {
 
         linkElements.forEach(({ rel, href }) => {
             if (!document.querySelector(`link[href="${href}"]`)) {
-            const link = document.createElement('link');
-            link.rel = rel;
-            link.href = href;
-            document.head.appendChild(link);
+                const link = document.createElement('link');
+                link.rel = rel;
+                link.href = href;
+                document.head.appendChild(link);
             }
         });
 
         // Add Bootstrap JS
         if (!document.querySelector('script[src*="bootstrap.bundle.min.js"]')) {
-        const script = document.createElement('script');
+            const script = document.createElement('script');
             script.src = 'https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js';
-        document.body.appendChild(script);
+            document.body.appendChild(script);
         }
 
         return () => {
@@ -83,9 +87,9 @@ const Nav = () => {
     return (
         <>
             <header className={`fixed-top bg-white ${isScrolled ? 'shadow-sm' : ''}`}>
-                        <div className="container">
+                <div className="container">
                     <div className="row align-items-center py-3">
-                                <div className="col-lg-3 col-md-2">
+                        <div className="col-lg-3 col-md-2">
                             <div className="navbar-brand">
                                 <Link href="/"><img src="/assets/img/logo/logo.png" alt="" style={{ maxWidth: '160px' }} /></Link>
                             </div>
@@ -105,9 +109,14 @@ const Nav = () => {
                                             <li className="nav-item">
                                                 <Link className="nav-link px-3 text-primary fw-medium nav-hover" href="/jobs">Find a Jobs</Link>
                                             </li>
-                                            <li className="nav-item">
-                                                <Link className="nav-link px-3 text-primary fw-medium nav-hover" href="/jobs/create">Post a Job</Link>
-                                            </li>
+                                            {
+                                                isAuth && (
+                                                    <li className="nav-item">
+                                                    <Link className="nav-link px-3 text-primary fw-medium nav-hover" href="/create">Post a Job</Link>
+                                                </li>
+                                                )
+                                            }
+
                                             <li className="nav-item">
                                                 <Link className="nav-link px-3 text-primary fw-medium nav-hover" href="/about">About</Link>
                                             </li>
@@ -115,6 +124,40 @@ const Nav = () => {
                                             <li className="nav-item">
                                                 <Link className="nav-link px-3 text-primary fw-medium nav-hover" href="/contact">Contact</Link>
                                             </li>
+                                            {isJobSeeker && (
+                                            <li className="nav-item dropdown">
+                                                    <Link className="nav-link dropdown-toggle text-primary fw-medium nav-hover" href="#" role="button" data-bs-toggle="dropdown">
+                                                        <i className="fas fa-shield-alt me-1"></i>
+                                                        JobSeeker
+                                                    </Link>
+
+                                            <ul className="dropdown-menu dropdown-menu-end">
+
+                                                        <ul>
+                                                            <li>
+                                                                <Link
+                                                                    href={route('applications.index')}
+                                                                    className="dropdown-item"
+                                                                >
+                                                                    <i className="fas fa-file-alt me-2"></i>
+                                                                    My Applications
+                                                                </Link>
+                                                            </li>
+                                                            <li>
+                                                                <Link
+                                                                    href={route('saved-jobs.index')}
+                                                                    className="dropdown-item"
+                                                                >
+                                                                    <i className="fas fa-heart me-2"></i>
+                                                                    Saved Jobs
+                                                                </Link>
+                                                            </li>
+                                                            <li><hr className="dropdown-divider" /></li>
+                                                        </ul>
+
+                                                    </ul>
+                                                </li>
+                                            )}
                                             {isModerator && (
                                                 <li className="nav-item dropdown">
                                                     <Link className="nav-link dropdown-toggle text-primary fw-medium nav-hover" href="#" role="button" data-bs-toggle="dropdown">
@@ -192,10 +235,10 @@ const Nav = () => {
                                             </Link>
                                             <div className="dropdown">
                                                 <button className="btn btn-link text-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                    {auth.user.name}
+                                                    <img src="/assets/img/avatar/avatar-1.jpg" alt="" style={{ width: '40px', height: '40px', borderRadius: '50%' }} />
                                                 </button>
                                                 <ul className="dropdown-menu">
-                                                    <li><Link className="dropdown-item" href="/profile">Profile</Link></li>
+                                                    <li><Link className="dropdown-item" href='/profile/show'>View Profile</Link></li>
                                                     <li><Link className="dropdown-item" href="/settings">Settings</Link></li>
                                                     <li><hr className="dropdown-divider" /></li>
                                                     <li>
@@ -209,7 +252,7 @@ const Nav = () => {
                                                         </Link>
                                                     </li>
                                                 </ul>
-                                        </div>
+                                            </div>
                                         </>
                                     ) : (
                                         <>
@@ -217,10 +260,10 @@ const Nav = () => {
                                             <Link href="/login" className="btn btn-success">Login</Link>
                                         </>
                                     )}
-                                        </div>
-                                    </div>
                                 </div>
-                                {/* Mobile Menu */}
+                            </div>
+                        </div>
+                        {/* Mobile Menu */}
                         <div className="col-12 d-lg-none">
                             <button
                                 className={`navbar-toggler border-0 ${isMenuOpen ? 'collapsed' : ''}`}
@@ -228,7 +271,7 @@ const Nav = () => {
                                 onClick={toggleMenu}
                             >
                                 <span className="navbar-toggler-icon"></span>
-                                            </button>
+                            </button>
                             <div className={`collapse navbar-collapse ${isMenuOpen ? 'show' : ''}`}>
                                 <ul className="navbar-nav">
                                     <li className="nav-item"><Link className="nav-link text-primary fw-medium nav-hover" href="/">Home</Link></li>
@@ -244,7 +287,7 @@ const Nav = () => {
                                             <li><Link className="dropdown-item nav-hover" href="/blog-details">Blog Details</Link></li>
                                             <li><Link className="dropdown-item nav-hover" href="/elements">Elements</Link></li>
                                             <li><Link className="dropdown-item nav-hover" href="/job-details">Job Details</Link></li>
-                                                    </ul>
+                                        </ul>
                                     </li>
                                     {isModerator && (
                                         <li className="nav-item dropdown">
@@ -335,7 +378,9 @@ const Nav = () => {
                     </div>
                 </div>
             </header>
-            <Sidebar />
+            <Sidebar auth={{
+                user: null
+            }} />
 
 
         </>

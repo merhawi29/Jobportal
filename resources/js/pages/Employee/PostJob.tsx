@@ -1,5 +1,5 @@
 import React, { FormEvent, useState } from 'react';
-import { router } from '@inertiajs/react';
+import { router, Link } from '@inertiajs/react';
 import { Head } from '@inertiajs/react';
 
 interface FormData {
@@ -83,10 +83,16 @@ const PostJob = () => {
             <Head title="Post a New Job" />
             <div className="bg-light min-vh-100 py-5">
                 <div className="container">
+                <div className="mb-4">
+                    <Link href={route('jobs.index')} className="btn btn-outline-success">
+                        <i className="fas fa-arrow-left me-2"></i>
+                        Back to Jobs
+                    </Link>
+                </div>
                     <div className="row justify-content-center">
                         <div className="col-lg-8">
                             <div className="card border-0 shadow-sm">
-                                <div className="card-header bg-gradient text-white py-4" style={{ background: 'linear-gradient(135deg, #00b074 0%, #008c5d 100%)' }}>
+                                <div className="card-header bg-gradient text-blue py-4" style={{ background: 'linear-gradient(135deg, #00b074 0%, #008c5d 100%)' }}>
                                     <h2 className="h3 mb-0 fw-bold">Post a New Job</h2>
                                 </div>
                                 <div className="card-body p-4">

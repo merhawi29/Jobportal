@@ -17,9 +17,8 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('phone')->nullable();
+
             $table->enum('role', ['job_seeker', 'employer', 'moderator', 'admin'])->default('job_seeker');
-            $table->string('profile_picture')->nullable();
-            $table->string('resume')->nullable();
             $table->foreignId('company_id')->nullable()->constrained('companies')->onDelete('set null');
             $table->rememberToken();
             $table->timestamps();

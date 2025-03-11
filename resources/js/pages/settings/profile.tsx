@@ -25,6 +25,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
     const { data, setData, patch, errors, processing, recentlySuccessful } = useForm({
         name: auth.user.name,
         email: auth.user.email,
+        phone: "",
     });
 
     const submit: FormEventHandler = (e) => {
@@ -38,11 +39,9 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Profile settings" />
-
             <SettingsLayout>
                 <div className="space-y-6">
                     <HeadingSmall title="Profile information" description="Update your name and email address" />
-
                     <form onSubmit={submit} className="space-y-6">
                         <div className="grid gap-2">
                             <Label htmlFor="name">Name</Label>
@@ -77,8 +76,9 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                             <InputError className="mt-2" message={errors.email} />
                         </div>
 
+
                         {mustVerifyEmail && auth.user.email_verified_at === null && (
-                            <div>
+                                <div>
                                 <p className="text-muted-foreground -mt-4 text-sm">
                                     Your email address is unverified.{' '}
                                     <Link

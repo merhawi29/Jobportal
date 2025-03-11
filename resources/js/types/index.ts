@@ -33,6 +33,7 @@ export interface User {
     name: string;
     email: string;
     avatar?: string;
+    profile_image?: string | null;
     email_verified_at: string | null;
     created_at: string;
     updated_at: string;
@@ -60,4 +61,24 @@ export interface Activity {
         id: number;
         [key: string]: any;
     } | null;
+}
+
+export interface Job {
+    id: number;
+    title: string;
+    company: string;
+    location: string;
+    type: string;
+    salary_range: string;
+    description: string;
+    requirements: string;
+    benefits: string;
+    deadline: string;
+    status: string;
+    user_id: number;
+    created_at: string;
+    updated_at: string;
+    user?: {
+        name: string;
+    };
 }

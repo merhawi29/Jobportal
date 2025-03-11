@@ -9,14 +9,19 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up() {
+    public function up(): void
+    {
         Schema::create('saved_jobs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('job_id')->constrained('jobs')->onDelete('cascade');
-            $table->foreignId('job_seeker_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('job_id')->constrained('jobslist')->onDelete('cascade');
             $table->timestamps();
+
+            // Prevent duplicate saves
+            $table->unique(['user_id', 'job_id']);
         });
     }
+
     /**
      * Reverse the migrations.
      */

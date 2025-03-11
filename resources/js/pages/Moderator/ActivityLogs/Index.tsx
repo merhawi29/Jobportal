@@ -116,7 +116,7 @@ export default function Index({ logs, filters }: Props) {
                                             <td>
                                                 <Link
                                                     href={`/moderator/activity-logs/${log.id}`}
-                                                    className="btn btn-sm btn-primary"
+                                                    className="btn btn-sm btn-success"
                                                 >
                                                     View Details
                                                 </Link>

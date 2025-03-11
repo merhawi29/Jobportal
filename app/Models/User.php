@@ -92,4 +92,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Report::class, 'reported_id');
     }
+
+    public function jobSeekerProfile()
+    {
+        return $this->hasOne(JobSeekerProfile::class);
+    }
 }

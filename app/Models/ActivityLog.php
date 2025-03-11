@@ -4,30 +4,32 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ActivityLog extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'moderator_id',
-        'action_type',
-        'target_type',
-        'target_id',
-        'reason',
-        'details',
+        'user_id',
+        'log_name',
+        'description',
+        'event',
+        'subject_type',
+        'subject_id',
+        'properties'
     ];
 
     protected $casts = [
-        'details' => 'array',
+        'properties' => 'array'
     ];
 
     /**
-     * Get the moderator who performed the action.
+     * Get the user who performed the action.
      */
-    public function moderator()
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'moderator_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     /**

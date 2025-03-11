@@ -4,35 +4,35 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\Traits\CausesActivity;
 
 class Job extends Model
 {
-    use HasFactory, LogsActivity;
+    use HasFactory, LogsActivity, CausesActivity;
 
     protected $table = 'jobslist';
 
     protected $fillable = [
+        'user_id',
         'title',
         'company',
         'location',
         'type',
+        'category',
+        'subcategories',
         'salary_range',
         'description',
         'requirements',
         'benefits',
         'deadline',
-        'user_id',
-        'status',
-        'moderation_status',
-        'moderation_reason',
+        'status'
     ];
 
     protected $casts = [
         'deadline' => 'date',
-        'requirements' => 'array',
-        'salary_range' => 'array'
+        'subcategories' => 'array'
     ];
 
     const MODERATION_STATUS = [
@@ -61,9 +61,7 @@ class Job extends Model
                 'requirements',
                 'benefits',
                 'deadline',
-                'status',
-                'moderation_status',
-                'moderation_reason'
+                'status'
             ])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
@@ -77,6 +75,11 @@ class Job extends Model
     public function applications()
     {
         return $this->hasMany(JobApplication::class);
+    }
+
+    public function savedBy()
+    {
+        return $this->hasMany(SavedJob::class);
     }
 
     public function isPending()

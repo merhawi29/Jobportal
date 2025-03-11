@@ -47,7 +47,7 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
                             </div>
                             <Link
                                 href={`/jobs/${job.id}`}
-                                className="btn btn-outline-primary btn-sm"
+                                className="btn btn-outline-success btn-sm"
                             >
                                 View Details
                             </Link>

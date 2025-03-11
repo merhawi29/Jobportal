@@ -13,7 +13,7 @@ return new class extends Migration
                 $table->string('role')->default('user');
             }
             if (!Schema::hasColumn('users', 'status')) {
-                $table->string('status')->default('inactive');
+                $table->string('status')->default('active');
             }
             if (!Schema::hasColumn('users', 'banned_until')) {
                 $table->timestamp('banned_until')->nullable();

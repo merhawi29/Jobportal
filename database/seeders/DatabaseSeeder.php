@@ -1,8 +1,11 @@
 <?php
 
 namespace Database\Seeders;
+use Illuminate\Support\Facades\Hash;
 
 use App\Models\User;
+use App\Models\JobApplication;
+use App\Models\SavedJob;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -13,12 +16,63 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-         User::factory(5)->create();
+        // First run the job seeder to create employer and jobs
+        $this->call([
+            JobSeeder::class,
+        ]);
 
-        // User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@gmail.com',
-        //     'password' => Hash::make('password'),
-        // ]);
+        // Create job seekers
+        $jobSeekers = User::factory(5)->create([
+            'role' => 'job_seeker',
+            'status' => 'active',
+            'email_verified_at' => now()
+        ]);
+
+        // Get all jobs
+        $jobs = \App\Models\Job::all();
+
+        // For each job seeker, randomly apply to jobs and save jobs
+        foreach ($jobSeekers as $jobSeeker) {
+            // Randomly apply to 2-4 jobs
+            $jobsToApply = $jobs->random(rand(2, 4));
+            foreach ($jobsToApply as $job) {
+                JobApplication::create([
+                    'user_id' => $jobSeeker->id,
+                    'job_id' => $job->id,
+                    'status' => 'pending',
+                    'cover_letter' => "I am excited to apply for the {$job->title} position at {$job->company}. With my relevant experience and skills, I believe I would be a great addition to your team.",
+                    'resume' => 'resumes/default-resume.pdf'
+                ]);
+            }
+
+            // Randomly save 3-5 jobs (different from applied ones)
+            $jobsToSave = $jobs->diff($jobsToApply)->random(min(rand(3, 5), $jobs->count() - $jobsToApply->count()));
+            foreach ($jobsToSave as $job) {
+                SavedJob::create([
+                    'user_id' => $jobSeeker->id,
+                    'job_id' => $job->id
+                ]);
+            }
+        }
+
+        // Create admin user
+        User::create([
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'password' => Hash::make('password'),
+            'role' => 'admin',
+            'status' => 'active',
+            'email_verified_at' => now()
+        ]);
+
+        // Create moderator user
+        User::create([
+            'name' => 'Moderator User',
+            'email' => 'moderator@example.com',
+            'password' => Hash::make('password'),
+            'role' => 'moderator',
+            'status' => 'active',
+            'email_verified_at' => now()
+        ]);
     }
 }

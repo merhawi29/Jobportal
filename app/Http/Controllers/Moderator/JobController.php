@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Job;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
+use Illuminate\Support\Facades\Gate;
 
 class JobsController extends Controller
 {
@@ -94,13 +97,16 @@ class JobsController extends Controller
 
     public function approve(Job $job)
     {
-        $job->update(['moderation_status' => 'approved']);
+        $job = job::findOrfail($id);
+        $job->status = 'approbed';
+        $job->save();
+                //$job->update(['moderation_status' => 'approved']);
 
-        // Log the action
-        activity()
-            ->performedOn($job)
-            ->causedBy(auth()->user())
-            ->log('job_approved');
+        // // Log the action
+        // activity()
+        //     ->performedOn($job)
+        //     ->causedBy(auth()->user())
+        //     ->log('job_approved');
 
         return back()->with('success', 'Job has been approved.');
     }
