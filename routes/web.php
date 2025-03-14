@@ -7,7 +7,7 @@ use App\Http\Controllers\JobSeeker\ProfileController as JobSeekerProfileControll
 use App\Http\Controllers\JobApplicationController;
 use App\Http\Controllers\SavedJobController;
 use App\Http\Controllers\JobAlertController;
-
+use App\Http\Controllers\EmployeeProfileController;
 
 Route::get('/', function () {
     return Inertia::render('Home');
@@ -25,6 +25,7 @@ Route::get('/jobs/{job}', [JobController::class, 'show'])->name('jobs.show');
 Route::middleware(['auth'])->group(function () {
 Route::post('/jobs', [JobController::class, 'store'])->name('jobs.store');
 Route::get('/create', [JobController::class, 'create'])->name('create');
+
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -55,14 +56,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Job Seeker Profile routes
-Route::get('/profile/show', [JobSeekerProfileController::class, 'show'])->name('profile.show');
 
 
     Route::prefix('jobseeker')->name('jobseeker.')->group(function () {
         Route::get('/profile', [JobSeekerProfileController::class, 'edit'])->name('profile.edit');
         Route::put('/profile', [JobSeekerProfileController::class, 'update'])->name('profile.update');
+        Route::get('/profile/show/{id?}', [JobSeekerProfileController::class, 'show'])->name('profile.show');
     });
+
+
+        Route::prefix('employee')->name('employee.')->group(function () {
+            Route::get('/profile', [EmployeeProfileController::class, 'edit'])->name('profile.edit');
+            Route::put('/profile', [EmployeeProfileController::class, 'update'])->name('profile.update');
+            Route::post('/profile/photo', [EmployeeProfileController::class, 'updatePhoto'])->name('profile.photo');
+            Route::get('/profile/show/{id?}', [EmployeeProfileController::class, 'show'])->name('profile.show');
+        });
+
 });
+
+
+
+// Route::prefix('employee')->name('employee.')->group(function () {
+// });
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

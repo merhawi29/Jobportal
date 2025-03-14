@@ -125,6 +125,8 @@ class ProfileController extends Controller
     public function show()
     {
         $user = auth()->user();
+        // This line gets the user's job seeker profile if it exists, otherwise creates a new empty profile
+        // The ?? is the null coalescing operator - returns left side if not null, right side if null
         $profile = $user->jobSeekerProfile ?? new JobSeekerProfile();
         $isOwnProfile = true; // Since we're viewing our own profile
 

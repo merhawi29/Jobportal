@@ -97,4 +97,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(JobSeekerProfile::class);
     }
+
+    public function employee()
+    {
+        return $this->hasOne(Employee::class);
+    }
 }

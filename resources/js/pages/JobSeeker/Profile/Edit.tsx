@@ -28,6 +28,10 @@ interface Props {
         show_resume: boolean;
     };
     status?: string;
+    flash: {
+        success?: string;
+        error?: string;
+    };
 }
 
 interface Education {
@@ -78,7 +82,7 @@ interface FormData {
     show_resume: boolean;
 }
 
-export default function Edit({ profile, status }: Props) {
+export default function Edit({ profile, status, flash }: Props) {
     const [formData, setFormData] = useState<FormData>({
         name: profile.name || '',
         email: profile.email || '',
@@ -254,10 +258,22 @@ export default function Edit({ profile, status }: Props) {
     return (
         <div className="py-12">
             <Head title="Edit Profile" />
+            {/* Flash Messages */}
+            {flash.success && (
+                <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+                    <span className="block sm:inline">{flash.success}</span>
+                </div>
+            )}
+
+            {flash.error && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                    <span className="block sm:inline">{flash.error}</span>
+                </div>
+            )}
 
             <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 mb-6">
                 <Link
-                    href='/profile/show'
+                    href={route('jobseeker.profile.show')}
                     className="btn btn-outline-success"
                 >
                     <i className="fas fa-arrow-left me-2"></i>

@@ -38,6 +38,7 @@ const Nav = () => {
     const { auth } = usePage<Props>().props;
     const isModerator = auth?.user?.role === 'moderator';
     const isJobSeeker = auth?.user?.role === 'job_seeker';
+    const isEmployer = auth?.user?.role === 'employer';
     const isAuth = auth?.user?.role === 'employer' || auth?.user?.role === 'admin' || auth?.user?.role === 'moderator';
     const [isOpen, setIsOpen] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(true);
@@ -238,7 +239,30 @@ const Nav = () => {
                                                     <img src="/assets/img/avatar/avatar-1.jpg" alt="" style={{ width: '40px', height: '40px', borderRadius: '50%' }} />
                                                 </button>
                                                 <ul className="dropdown-menu">
-                                                    <li><Link className="dropdown-item" href='/profile/show'>View Profile</Link></li>
+                                                    <li>
+                                                       {isJobSeeker ? (
+                                                           <Link
+                                                               className="dropdown-item"
+                                                               href={route('jobseeker.profile.show')}
+                                                           >
+                                                               Profile
+                                                           </Link>
+                                                       ) : isEmployer ? (
+                                        <Link
+                                                               className="dropdown-item"
+                                                               href={route('employee.profile.show')}
+                                        >
+                                                               Profile
+                                        </Link>
+                                                       ) : (
+                                        <Link
+                                                               className="dropdown-item"
+                                                               href="/profile"
+                                        >
+                                                               Profile
+                                        </Link>
+                            )}
+                                                    </li>
                                                     <li><Link className="dropdown-item" href="/settings">Settings</Link></li>
                                                     <li><hr className="dropdown-divider" /></li>
                                                     <li>
@@ -273,22 +297,63 @@ const Nav = () => {
                                 <span className="navbar-toggler-icon"></span>
                             </button>
                             <div className={`collapse navbar-collapse ${isMenuOpen ? 'show' : ''}`}>
-                                <ul className="navbar-nav">
-                                    <li className="nav-item"><Link className="nav-link text-primary fw-medium nav-hover" href="/">Home</Link></li>
-                                    <li className="nav-item"><Link className="nav-link text-primary fw-medium nav-hover" href="/jobs">Find a Jobs</Link></li>
-                                    <li className="nav-item"><Link className="nav-link text-primary fw-medium nav-hover" href="/jobs/create">Post New Job</Link></li>
-                                    <li className="nav-item"><Link className="nav-link text-primary fw-medium nav-hover" href="/about">About</Link></li>
+                            <ul className="navbar-nav me-auto">
+                                            <li className="nav-item">
+
+                                                <Link className="nav-link px-3 text-primary fw-medium nav-hover " href="/">Home</Link>
+                                            </li>
+                                            <li className="nav-item">
+                                                <Link className="nav-link px-3 text-primary fw-medium nav-hover" href="/jobs">Find a Jobs</Link>
+                                            </li>
+                                            {
+                                                isAuth && (
+                                                    <li className="nav-item">
+                                                    <Link className="nav-link px-3 text-primary fw-medium nav-hover" href="/create">Post a Job</Link>
+                                                </li>
+                                                )
+                                            }
+
+                                            <li className="nav-item">
+                                                <Link className="nav-link px-3 text-primary fw-medium nav-hover" href="/about">About</Link>
+                                            </li>
+
+                                            <li className="nav-item">
+                                                <Link className="nav-link px-3 text-primary fw-medium nav-hover" href="/contact">Contact</Link>
+                                            </li>
+                                            {isJobSeeker && (
                                     <li className="nav-item dropdown">
                                         <Link className="nav-link dropdown-toggle text-primary fw-medium nav-hover" href="#" role="button" data-bs-toggle="dropdown">
-                                            Page
+                                                        <i className="fas fa-shield-alt me-1"></i>
+                                                        JobSeeker
+                                                    </Link>
+
+                                            <ul className="dropdown-menu dropdown-menu-end">
+
+                                                        <ul>
+                                                            <li>
+                                                                <Link
+                                                                    href={route('applications.index')}
+                                                                    className="dropdown-item"
+                                                                >
+                                                                    <i className="fas fa-file-alt me-2"></i>
+                                                                    My Applications
+                                                                </Link>
+                                                            </li>
+                                                            <li>
+                                                                <Link
+                                                                    href={route('saved-jobs.index')}
+                                                                    className="dropdown-item"
+                                                                >
+                                                                    <i className="fas fa-heart me-2"></i>
+                                                                    Saved Jobs
                                         </Link>
-                                        <ul className="dropdown-menu">
-                                            <li><Link className="dropdown-item nav-hover" href="/blog">Blog</Link></li>
-                                            <li><Link className="dropdown-item nav-hover" href="/blog-details">Blog Details</Link></li>
-                                            <li><Link className="dropdown-item nav-hover" href="/elements">Elements</Link></li>
-                                            <li><Link className="dropdown-item nav-hover" href="/job-details">Job Details</Link></li>
+                                                            </li>
+                                                            <li><hr className="dropdown-divider" /></li>
+                                                        </ul>
+
                                         </ul>
                                     </li>
+                                            )}
                                     {isModerator && (
                                         <li className="nav-item dropdown">
                                             <Link className="nav-link dropdown-toggle text-primary fw-medium nav-hover" href="#" role="button" data-bs-toggle="dropdown">
@@ -342,18 +407,61 @@ const Nav = () => {
                                             </ul>
                                         </li>
                                     )}
-                                    <li className="nav-item"><Link className="nav-link text-primary fw-medium nav-hover" href="/contact">Contact</Link></li>
+                                        </ul>
+                                    </div>
+                                    <div className="d-none d-lg-flex align-items-center">
                                     {auth.user ? (
                                         <>
-                                            <li className="nav-item">
-                                                <Link className="nav-link text-primary fw-medium" href="/profile">Profile</Link>
+                                            <Link href="/messages" className="btn btn-link position-relative me-3 text-primary">
+                                                <i className="fas fa-envelope fa-lg"></i>
+                                                {messageCount > 0 && (
+                                                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                                        {messageCount}
+                                                    </span>
+                                                )}
+                                            </Link>
+                                            <Link href="/notifications" className="btn btn-link position-relative me-4 text-primary">
+                                                <i className="fas fa-bell fa-lg"></i>
+                                                {alertCount > 0 && (
+                                                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                                        {alertCount}
+                                                    </span>
+                                                )}
+                                            </Link>
+                                            <div className="dropdown">
+                                                <button className="btn btn-link text-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                    <img src="/assets/img/avatar/avatar-1.jpg" alt="" style={{ width: '40px', height: '40px', borderRadius: '50%' }} />
+                                                </button>
+                                                <ul className="dropdown-menu">
+                                                   <li>
+                                                       {auth.user?.role === 'job_seeker' ? (
+                                                           <Link
+                                                               className="dropdown-item"
+                                                               href={route('jobseeker.profile.edit')}
+                                                           >
+                                                               Profile
+                                                           </Link>
+                                                       ) : auth.user?.role === 'employer' ? (
+                                                           <Link
+                                                               className="dropdown-item"
+                                                               href={route('employee.profile.edit')}
+                                                           >
+                                                               Profile
+                                                           </Link>
+                                                       ) : (
+                                                           <Link
+                                                               className="dropdown-item"
+                                                               href="/profile"
+                                                           >
+                                                               Profile
+                                                           </Link>
+                                                       )}
                                             </li>
-                                            <li className="nav-item">
-                                                <Link className="nav-link text-primary fw-medium" href="/settings">Settings</Link>
-                                            </li>
-                                            <li className="nav-item">
+                                                    <li><Link className="dropdown-item" href="/settings">Settings</Link></li>
+                                                    <li><hr className="dropdown-divider" /></li>
+                                                    <li>
                                                 <Link
-                                                    className="nav-link text-danger fw-medium"
+                                                            className="dropdown-item text-danger"
                                                     href="/logout"
                                                     method="post"
                                                     as="button"
@@ -361,22 +469,21 @@ const Nav = () => {
                                                     Logout
                                                 </Link>
                                             </li>
+                                                </ul>
+                                            </div>
                                         </>
                                     ) : (
                                         <>
-                                            <li className="nav-item mt-3">
-                                                <Link href="/register" className="btn btn-primary w-100 mb-2">Register</Link>
-                                            </li>
-                                            <li className="nav-item">
-                                                <Link href="/login" className="btn btn-success w-100">Login</Link>
-                                            </li>
+                                            <Link href="/register" className="btn btn-primary me-2">Register</Link>
+                                            <Link href="/login" className="btn btn-success">Login</Link>
                                         </>
                                     )}
-                                </ul>
+                                </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
+
+
             </header>
             <Sidebar auth={{
                 user: null
