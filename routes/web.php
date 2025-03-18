@@ -23,9 +23,11 @@ Route::get('/jobs/{job}', [JobController::class, 'show'])->name('jobs.show');
 
 // Protected job routes
 Route::middleware(['auth'])->group(function () {
-Route::post('/jobs', [JobController::class, 'store'])->name('jobs.store');
-Route::get('/create', [JobController::class, 'create'])->name('create');
-
+    Route::post('/jobs', [JobController::class, 'store'])->name('jobs.store');
+    Route::get('/create', [JobController::class, 'create'])->name('create');
+    Route::get('/jobs/{job}/edit', [JobController::class, 'edit'])->name('jobs.edit');
+    Route::put('/jobs/{job}', [JobController::class, 'update'])->name('jobs.update');
+    Route::delete('/jobs/{job}', [JobController::class, 'destroy'])->name('jobs.destroy');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -61,6 +63,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('jobseeker')->name('jobseeker.')->group(function () {
         Route::get('/profile', [JobSeekerProfileController::class, 'edit'])->name('profile.edit');
         Route::put('/profile', [JobSeekerProfileController::class, 'update'])->name('profile.update');
+        Route::post('/profile/photo', [JobSeekerProfileController::class, 'updatePhoto'])->name('profile.photo');
         Route::get('/profile/show/{id?}', [JobSeekerProfileController::class, 'show'])->name('profile.show');
     });
 
@@ -70,6 +73,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::put('/profile', [EmployeeProfileController::class, 'update'])->name('profile.update');
             Route::post('/profile/photo', [EmployeeProfileController::class, 'updatePhoto'])->name('profile.photo');
             Route::get('/profile/show/{id?}', [EmployeeProfileController::class, 'show'])->name('profile.show');
+        });
+
+        // Employer routes
+        Route::prefix('employer')->name('employer.')->middleware(['auth'])->group(function () {
+            Route::get('/jobs', [\App\Http\Controllers\Employer\JobManagementController::class, 'index'])->name('jobs.index');
+            Route::get('/applications', [\App\Http\Controllers\Employer\JobManagementController::class, 'applications'])->name('applications.index');
         });
 
 });

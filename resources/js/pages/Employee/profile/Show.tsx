@@ -1,7 +1,8 @@
 import React from 'react';
-import { Head , Link} from '@inertiajs/react';
+import { Head , Link, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Auth } from '@/types';
+import { PageProps } from '@inertiajs/core';
 
 interface Employee {
     id: number;
@@ -12,7 +13,7 @@ interface Employee {
     department: string;
     hire_date: string;
     status: string;
-    profile_image: string;
+    photo: string;
     address: string;
     country: string;
     company_name: string;
@@ -26,13 +27,18 @@ interface Employee {
     };
 }
 
-interface Props {
+interface Props extends PageProps {
     auth: Auth;
     employee: Employee;
     isOwnProfile: boolean;
+    flash: {
+        message?: string;
+        error?: string;
+    };
 }
 
-export default function Show({  employee, isOwnProfile }: Props) {
+export default function Show({ employee, isOwnProfile }: Props) {
+    const { flash } = usePage<Props>().props;
     return (
         <AppLayout>
 
@@ -67,19 +73,20 @@ export default function Show({  employee, isOwnProfile }: Props) {
                             <div className="flex items-center space-x-6 mb-8">
                                 <div className="relative">
                                     <img
-                                        src={employee.profile_image || '/default-avatar.png'}
-                                        alt={`${employee.name}'s avatar`}
+                                    //    src = {`${'/employee_photos/'}${employee.photo}`}
+                                         src={employee.photo || '/default-avatar.png'}
+                                        alt={`${employee.name}'s avatarm`}
                                         className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
                                     />
                                      <div>
-                                    <h1 className="text-3xl font-bold mb-2">{employee.user?.name}</h1>
+                                    <h1 className="text-3xl font-bold mb-2">{employee.name}</h1>
                                     <div className="text-gray-600">
                                         <p><i className="fas fa-map-marker-alt me-2"></i>{employee.location || 'Location not specified'}</p>
-                                        {(isOwnProfile || employee.show_email) && (
-                                            <p><i className="fas fa-envelope me-2"></i>{employee.user?.email}</p>
+                                        {(isOwnProfile || employee.email) && (
+                                            <p><i className="fas fa-envelope me-2"></i>{employee.email}</p>
                                         )}
-                                        {(employee.isOwnProfile || employee.phone) && employee.user?.phone && (
-                                            <p><i className="fas fa-phone me-2"></i>{employee.user?.phone}</p>
+                                        {(employee.isOwnProfile || employee.phone) && employee.phone && (
+                                            <p><i className="fas fa-phone me-2"></i>{employee.phone}</p>
                                         )}
                                     </div>
                                 </div>
@@ -95,15 +102,11 @@ export default function Show({  employee, isOwnProfile }: Props) {
                                         <div className="space-y-4">
                                             <div>
                                                 <p className="text-sm font-medium text-gray-500">Email</p>
-                                                <p className="text-gray-900">{employee.user?.email}</p>
+                                                <p className="text-gray-900">{employee.email}</p>
                                             </div>
                                             <div>
                                                 <p className="text-sm font-medium text-gray-500">Phone</p>
-                                                <p className="text-gray-900">{employee.user?.phone}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-medium text-gray-500">Address</p>
-                                                <p className="text-gray-900">{employee.address}</p>
+                                                <p className="text-gray-900">{employee.phone}</p>
                                             </div>
                                             <div>
                                                 <p className="text-sm font-medium text-gray-500">Country</p>

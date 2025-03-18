@@ -158,4 +158,23 @@ class ProfileController extends Controller
             'isOwnProfile' => $isOwnProfile
         ]);
     }
+
+    public function updatePhoto(Request $request)
+    {
+        $request->validate([
+            'profile_image' => 'required|image|max:2048'
+        ]);
+
+        $user = auth()->user();
+
+        if ($user->job_seeker_profile?->profile_image) {
+            Storage::delete($user->job_seeker_profile->profile_image);
+
+        }
+
+        $photoPath = $request->file('profile_image')->store('profile_images');
+
+        $user->employee()->update(['profile_image' => $photoPath]);
+        return response()->json(['profile_image' => Storage::url($photoPath)]);
+    }
 }

@@ -12,14 +12,13 @@ class Job extends Model
 {
     use HasFactory, LogsActivity, CausesActivity;
 
-    protected $table = 'jobslist';
-
     protected $fillable = [
         'user_id',
         'title',
         'company',
         'location',
         'type',
+        'sector',
         'category',
         'subcategories',
         'salary_range',
@@ -27,7 +26,9 @@ class Job extends Model
         'requirements',
         'benefits',
         'deadline',
-        'status'
+        'status',
+        'moderation_status',
+        'moderation_reason'
     ];
 
     protected $casts = [
@@ -48,6 +49,16 @@ class Job extends Model
         'CLOSED' => 'closed'
     ];
 
+    const JOB_TYPES = [
+        'Full-time',
+        'Part-time',
+        'Contract',
+        'Freelance',
+        'Internship',
+        'Volunteer',
+        'Remote'
+    ];
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
@@ -56,12 +67,17 @@ class Job extends Model
                 'company',
                 'location',
                 'type',
+                'sector',
+                'category',
+                'subcategories',
                 'salary_range',
                 'description',
                 'requirements',
                 'benefits',
                 'deadline',
-                'status'
+                'status',
+                'moderation_status',
+                'moderation_reason'
             ])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
@@ -95,5 +111,25 @@ class Job extends Model
     public function isRejected()
     {
         return $this->moderation_status === self::MODERATION_STATUS['REJECTED'];
+    }
+
+    public function scopeApproved($query)
+    {
+        return $query->where('moderation_status', self::MODERATION_STATUS['APPROVED']);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', self::STATUS['ACTIVE']);
+    }
+
+    public function scopeByType($query, $type)
+    {
+        return $query->where('type', $type);
+    }
+
+    public function scopeBySector($query, $sector)
+    {
+        return $query->where('sector', $sector);
     }
 }

@@ -17,8 +17,6 @@ return new class extends Migration
             $table->string('position')->nullable();
             $table->string('department')->nullable();
             $table->date('hire_date')->nullable();
-            $table->decimal('salary', 10, 2)->nullable();
-            $table->string('employee_id')->unique();
             $table->string('photo')->nullable();
             $table->string('country')->nullable();
             $table->string('company_name')->nullable();

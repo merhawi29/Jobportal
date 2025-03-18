@@ -159,6 +159,35 @@ const Nav = () => {
                                                     </ul>
                                                 </li>
                                             )}
+                                            {isEmployer && (
+                                                <li className="nav-item dropdown">
+                                                    <Link className="nav-link dropdown-toggle text-primary fw-medium nav-hover" href="#" role="button" data-bs-toggle="dropdown">
+                                                        <i className="fas fa-building me-1"></i>
+                                                        Employer
+                                                    </Link>
+                                                    <ul className="dropdown-menu dropdown-menu-end">
+                                                        <li>
+                                                            <Link
+                                                                href={route('employer.jobs.index')}
+                                                                className="dropdown-item"
+                                                            >
+                                                                <i className="fas fa-list-alt me-2"></i>
+                                                                My Job Posts
+                                                            </Link>
+                                                        </li>
+                                                        <li>
+                                                            <Link
+                                                                href={route('employer.applications.index')}
+                                                                className="dropdown-item"
+                                                            >
+                                                                <i className="fas fa-users me-2"></i>
+                                                                Received Applications
+                                                            </Link>
+                                                        </li>
+                                                        <li><hr className="dropdown-divider" /></li>
+                                                    </ul>
+                                                </li>
+                                            )}
                                             {isModerator && (
                                                 <li className="nav-item dropdown">
                                                     <Link className="nav-link dropdown-toggle text-primary fw-medium nav-hover" href="#" role="button" data-bs-toggle="dropdown">
@@ -354,6 +383,35 @@ const Nav = () => {
                                         </ul>
                                     </li>
                                             )}
+                                    {isEmployer && (
+                                        <li className="nav-item dropdown">
+                                            <Link className="nav-link dropdown-toggle text-primary fw-medium nav-hover" href="#" role="button" data-bs-toggle="dropdown">
+                                                <i className="fas fa-building me-1"></i>
+                                                Employer
+                                            </Link>
+                                            <ul className="dropdown-menu dropdown-menu-end">
+                                                <li>
+                                                    <Link
+                                                        href={route('employer.jobs.index')}
+                                                            className="dropdown-item"
+                                                    >
+                                                        <i className="fas fa-list-alt me-2"></i>
+                                                        My Job Posts
+                                                    </Link>
+                                                </li>
+                                                <li>
+                                                    <Link
+                                                        href={route('employer.applications.index')}
+                                                            className="dropdown-item"
+                                                    >
+                                                        <i className="fas fa-users me-2"></i>
+                                                        Received Applications
+                                                    </Link>
+                                                </li>
+                                                <li><hr className="dropdown-divider" /></li>
+                                            </ul>
+                                        </li>
+                                    )}
                                     {isModerator && (
                                         <li className="nav-item dropdown">
                                             <Link className="nav-link dropdown-toggle text-primary fw-medium nav-hover" href="#" role="button" data-bs-toggle="dropdown">

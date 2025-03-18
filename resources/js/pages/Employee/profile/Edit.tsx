@@ -22,14 +22,13 @@ interface EmployeeData {
         email: string;
     };
     company_name: string;
-}
-
-interface Props extends PageProps {
+    status?: string;
     flash: {
         success?: string;
         error?: string;
     };
 }
+
 
 const Edit: React.FC = () => {
     const [employee, setEmployee] = useState<EmployeeData | null>(null);
@@ -123,6 +122,19 @@ const Edit: React.FC = () => {
 
         <div className="max-w-4xl mx-auto p-4">
             <Head title="Edit Profile" />
+             {/* Flash Messages */}
+             {employee.flash?.success && (
+                <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+                    <span className="block sm:inline">{employee.flash.success}</span>
+                </div>
+            )}
+
+            {employee.flash?.error && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                    <span className="block sm:inline">{employee.flash.error}</span>
+                </div>
+            )}
+
             <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 mb-6">
                 <Link
                     href={route('employee.profile.show')}
@@ -139,7 +151,7 @@ const Edit: React.FC = () => {
                 <div className="flex items-center space-x-6 mb-6">
                     <div className="relative">
                         <img
-                            src={employee.photo || '/default-avatar.png'}
+                            src={formData.photo || '/default-avatar.png'}
                             alt="Profile"
                             className="w-32 h-32 rounded-full object-cover"
                         />
@@ -164,7 +176,7 @@ const Edit: React.FC = () => {
                                 <input
                                     type="text"
                                     className="form-control"
-                                    value={formData.name}
+                                    value={employee.name}
                                     onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
                                     required
                                 />
@@ -175,7 +187,7 @@ const Edit: React.FC = () => {
                                 <input
                                     type="email"
                                     className="form-control"
-                                    value={formData.email}
+                                    value={employee.email}
                                     onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
                                     required
                                 />
@@ -186,7 +198,7 @@ const Edit: React.FC = () => {
                                 <input
                                     type="tel"
                                     className="form-control"
-                                    value={formData.phone}
+                                    value={employee.phone}
                                     onChange={e => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                                 />
                             </div>
@@ -216,7 +228,7 @@ const Edit: React.FC = () => {
                         </div>
                         <button
                             onClick={() => setIsEditing(true)}
-                            className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                            className="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700"
                         >
                             Edit Profile
                         </button>

@@ -1,5 +1,9 @@
 import React, { FormEvent, useState } from 'react';
 import { Head, router, Link } from '@inertiajs/react';
+import axios from 'axios';
+const [error, setError] = useState<string | null>(null);
+
+
 
 interface Props {
     profile: {
@@ -71,7 +75,7 @@ interface FormData {
     portfolio_url: string;
     is_public: boolean;
     resume: File | null;
-    profile_image: File | null;
+    profile_image: string | null;
     show_email: boolean;
     show_phone: boolean;
     show_education: boolean;
@@ -207,7 +211,7 @@ export default function Edit({ profile, status, flash }: Props) {
         const form = new FormData();
 
         // Log the data being sent
-        console.log('Submitting form data:', formData);
+        // console.log('Submitting form data:', formData);
 
         // Ensure all JSON fields are properly stringified
         (Object.keys(formData) as Array<keyof FormData>).forEach(key => {
@@ -255,6 +259,24 @@ export default function Edit({ profile, status, flash }: Props) {
         }
     };
 
+    const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files?.length) return;
+
+        const formData = new FormData();
+        formData.append('photo', e.target.files[0]);
+
+        try {
+            const response = await axios.post(route('jobseeker.profile.photo'), formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            setFormData(prev => prev ? { ...prev, profile_image: response.data.profile_image } : null);
+        } catch (err) {
+            setError('Failed to upload photo');
+        }
+    };
+
     return (
         <div className="py-12">
             <Head title="Edit Profile" />
@@ -293,6 +315,7 @@ export default function Edit({ profile, status, flash }: Props) {
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
                             {/* Basic Information */}
                             <div>
                                 <label className="form-label">Name</label>
@@ -664,36 +687,27 @@ export default function Edit({ profile, status, flash }: Props) {
                                 />
                             </div>
 
-                            <div>
-                                <label className="form-label">Profile Image</label>
-                                <div className="d-flex align-items-center gap-3">
-                                    {/* Show current profile image if it exists */}
-                                    {profile.profile_image && (
-                                        <div className="mb-2">
-                                            <img
-                                                src={profile.profile_image}
-                                                alt="Current profile"
-                                                className="rounded-circle"
-                                                style={{ width: '64px', height: '64px', objectFit: 'cover' }}
-                                            />
-                                        </div>
-                                    )}
-                                    <div className="flex-grow-1">
-                                        <input
-                                            type="file"
-                                            className="form-control"
-                                            accept="image/*"
-                                            onChange={e => setFormData(prev => ({
-                                                ...prev,
-                                                profile_image: e.target.files ? e.target.files[0] : null
-                                            }))}
-                                        />
-                                        <small className="text-muted">
-                                            Recommended: Square image, at least 200x200 pixels
-                                        </small>
-                                    </div>
-                                </div>
-                            </div>
+                            <div className="relative">
+                        <img
+                            src={formData.profile_image || '/default-avatar.png'}
+                            alt="Profile"
+                            className="w-32 h-32 rounded-full object-cover"
+                        />
+                        <label className="block mt-2">
+                            <span className="sr-only">Choose profile photo</span>
+                            <input
+                                type="file"
+                                onChange={handlePhotoUpload}
+                                accept="image/*"
+                                className="block w-full text-sm text-slate-500
+                                    file:mr-4 file:py-2 file:px-4
+                                    file:rounded-full file:border-0
+                                    file:text-sm file:font-semibold
+                                    file:bg-blue-50 file:text-blue-700
+                                    hover:file:bg-blue-100"
+                            />
+                        </label>
+                    </div>
 
                             {/* Resume Upload */}
                             <div>

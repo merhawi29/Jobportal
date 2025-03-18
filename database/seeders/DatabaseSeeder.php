@@ -16,8 +16,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // First run the job seeder to create employer and jobs
         $this->call([
+            UserSeeder::class,
             JobSeeder::class,
         ]);
 
@@ -54,25 +54,5 @@ class DatabaseSeeder extends Seeder
                 ]);
             }
         }
-
-        // Create admin user
-        User::create([
-            'name' => 'Admin User',
-            'email' => 'admin@example.com',
-            'password' => Hash::make('password'),
-            'role' => 'admin',
-            'status' => 'active',
-            'email_verified_at' => now()
-        ]);
-
-        // Create moderator user
-        User::create([
-            'name' => 'Moderator User',
-            'email' => 'moderator@example.com',
-            'password' => Hash::make('password'),
-            'role' => 'moderator',
-            'status' => 'active',
-            'email_verified_at' => now()
-        ]);
     }
 }

@@ -9,22 +9,22 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('jobslist', function (Blueprint $table) {
-            if (!Schema::hasColumn('jobslist', 'moderation_status')) {
+        Schema::table('jobs', function (Blueprint $table) {
+            if (!Schema::hasColumn('jobs', 'moderation_status')) {
                 $table->string('moderation_status')->default('pending');
             }
-            if (!Schema::hasColumn('jobslist', 'moderation_reason')) {
+            if (!Schema::hasColumn('jobs', 'moderation_reason')) {
                 $table->text('moderation_reason')->nullable();
             }
         });
 
         // Update existing jobs to be approved
-        DB::table('jobslist')->update(['moderation_status' => 'approved']);
+        DB::table('jobs')->update(['moderation_status' => 'approved']);
     }
 
     public function down(): void
     {
-        Schema::table('jobslist', function (Blueprint $table) {
+        Schema::table('jobs', function (Blueprint $table) {
             $table->dropColumn(['moderation_status', 'moderation_reason']);
         });
     }

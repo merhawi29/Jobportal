@@ -2,168 +2,226 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 use App\Models\Job;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Database\Seeder;
 
 class JobSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // Create a company user if not exists
-        $employer = User::create([
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
-            'password' => Hash::make('password'),
+        // Get or create employer users
+        $employers = User::where('role', 'employer')->take(5)->get();
+        if ($employers->count() < 5) {
+            $employers = collect();
+            for ($i = 0; $i < 5; $i++) {
+                $email = "employer" . ($i + 1) . "@example.com";
+                $employer = User::firstOrCreate(
+                    ['email' => $email],
+                    [
+                        'name' => "Employer " . ($i + 1),
+                        'password' => bcrypt('password'),
             'role' => 'employer',
             'status' => 'active'
-        ]);
+                    ]
+                );
+                $employers->push($employer);
+            }
+        }
 
-        $jobs = [
-            [
-                'title' => 'Senior Software Engineer',
-                'company' => 'TechCorp Solutions',
-                'description' => 'We are looking for an experienced software engineer with strong expertise in backend development and distributed systems.',
-                'location' => 'New York, NY',
-                'salary_range' => '$120,000 - $180,000',
-                'type' => 'Full-time',
-                'category' => 'Technology',
-                'subcategories' => ['Software Development', 'Backend Development'],
-                'requirements' => '- 5+ years experience in software development\n- Strong expertise in distributed systems\n- Experience with cloud platforms (AWS/GCP)\n- Excellent problem-solving skills',
-                'benefits' => '- Health insurance\n- 401k matching\n- Remote work options\n- Professional development budget\n- Flexible PTO',
-                'deadline' => now()->addDays(30),
-                'status' => 'active',
+        $techCompanies = [
+            'TechEthiopia Solutions',
+            'Digital Innovations Hub',
+            'EthioTech Systems',
+            'CodeMasters Ethiopia',
+            'Addis Software',
+            'Ethiopian Digital',
+            'Tech Valley Ethiopia',
+            'Innovation Labs AA',
+            'ByteCraft Solutions',
+            'Highland Tech'
+        ];
+
+        $locations = [
+            'Addis Ababa, Ethiopia',
+            'Dire Dawa, Ethiopia',
+            'Hawassa, Ethiopia',
+            'Bahir Dar, Ethiopia',
+            'Adama, Ethiopia'
+        ];
+
+        $techCategories = [
+            'Software Development',
+            'Web Development',
+            'Mobile Development',
+            'Cloud Computing',
+            'DevOps',
+            'Data Science',
+            'Artificial Intelligence',
+            'Cybersecurity',
+            'UI/UX Design',
+            'IT Support'
+        ];
+
+        // Create 50 sample tech jobs
+        foreach (range(1, 50) as $index) {
+            $employer = $employers->random();
+            $category = $techCategories[array_rand($techCategories)];
+            $deadline = now()->addDays(rand(7, 60));
+            
+            Job::create([
                 'user_id' => $employer->id,
+                'title' => $this->getTechJobTitle($category),
+                'company' => $techCompanies[array_rand($techCompanies)],
+                'location' => $locations[array_rand($locations)],
+                'type' => Job::JOB_TYPES[array_rand(Job::JOB_TYPES)],
+                'sector' => 'Technology',
+                'category' => $category,
+                'salary_range' => $this->getSalaryRange(),
+                'description' => $this->getTechDescription($category),
+                'requirements' => $this->getTechRequirements($category),
+                'benefits' => $this->getBenefits(),
+                'deadline' => $deadline,
+                'status' => Job::STATUS['ACTIVE'],
+                'moderation_status' => Job::MODERATION_STATUS['APPROVED']
+            ]);
+        }
+    }
+
+    private function getTechJobTitle($category): string
+    {
+        $titles = [
+            'Software Development' => [
+                'Senior Software Engineer',
+                'Full Stack Developer',
+                'Backend Developer',
+                'Frontend Developer',
+                'Software Architect'
             ],
-            [
-                'title' => 'Frontend Developer',
-                'company' => 'TechCorp Solutions',
-                'description' => 'Join our frontend team to build beautiful and responsive web applications using modern JavaScript frameworks.',
-                'location' => 'Remote',
-                'salary_range' => '$80,000 - $120,000',
-                'type' => 'Full-time',
-                'category' => 'Technology',
-                'subcategories' => ['Software Development', 'Frontend Development'],
-                'requirements' => '- 3+ years experience with React/Vue.js\n- Strong HTML/CSS skills\n- Experience with modern build tools\n- Understanding of web accessibility',
-                'benefits' => '- Health insurance\n- 401k matching\n- Remote work\n- Learning stipend\n- Flexible hours',
-                'deadline' => now()->addDays(45),
-                'status' => 'active',
-                'user_id' => $employer->id,
+            'Web Development' => [
+                'Senior Web Developer',
+                'React Developer',
+                'Laravel Developer',
+                'WordPress Developer',
+                'Vue.js Developer'
             ],
-            [
-                'title' => 'UX/UI Designer',
-                'company' => 'TechCorp Solutions',
-                'description' => 'Join our creative team to design beautiful and intuitive user interfaces for web and mobile applications.',
-                'location' => 'San Francisco, CA',
-                'type' => 'Full-time',
-                'salary_range' => '$80,000 - $120,000',
-                'requirements' => "- 3+ years of UX/UI design experience\n- Proficiency in Figma and Adobe Creative Suite\n- Strong portfolio demonstrating UI design skills\n- Experience with user research and testing",
-                'benefits' => "- Flexible work hours\n- Health and dental insurance\n- Stock options\n- Creative workspace\n- Team events",
-                'deadline' => '2024-05-15',
-                'status' => 'active',
-                'user_id' => $employer->id
+            'Mobile Development' => [
+                'Senior Mobile Developer',
+                'iOS Developer',
+                'Android Developer',
+                'React Native Developer',
+                'Flutter Developer'
             ],
-            [
-                'title' => 'DevOps Engineer',
-                'company' => 'TechCorp Solutions',
-                'description' => 'Looking for a skilled DevOps Engineer to help us build and maintain our cloud infrastructure.',
-                'location' => 'Remote',
-                'type' => 'Remote',
-                'salary_range' => '$90,000 - $140,000',
-                'requirements' => "- 4+ years of DevOps experience\n- AWS/Azure certification\n- Experience with Docker and Kubernetes\n- Strong scripting skills (Python, Bash)\n- CI/CD pipeline experience",
-                'benefits' => "- Full remote work\n- Flexible hours\n- Health insurance\n- Learning budget\n- Home office stipend",
-                'deadline' => '2024-06-15',
-                'status' => 'active',
-                'user_id' => $employer->id
+            'Cloud Computing' => [
+                'Cloud Solutions Architect',
+                'AWS Engineer',
+                'Azure Cloud Engineer',
+                'Cloud Infrastructure Engineer',
+                'Cloud DevOps Engineer'
             ],
-            [
-                'title' => 'Marketing Manager',
-                'company' => 'TechCorp Solutions',
-                'description' => 'We are looking for a Marketing Manager to lead our digital marketing initiatives and drive growth.',
-                'location' => 'Chicago, IL',
-                'type' => 'Full-time',
-                'salary_range' => '$70,000 - $100,000',
-                'requirements' => "- 5+ years of digital marketing experience\n- Experience with SEO, SEM, and social media marketing\n- Strong analytical skills\n- Project management experience",
-                'benefits' => "- Competitive base salary\n- Performance bonuses\n- Health benefits\n- Work from home options\n- Professional development",
-                'deadline' => '2024-05-20',
-                'status' => 'active',
-                'user_id' => $employer->id
+            'DevOps' => [
+                'DevOps Engineer',
+                'Site Reliability Engineer',
+                'CI/CD Specialist',
+                'Infrastructure Engineer',
+                'Systems Engineer'
             ],
-            [
-                'title' => 'Data Scientist',
-                'company' => 'TechCorp Solutions',
-                'description' => 'Seeking a Data Scientist to help us derive insights from complex datasets and build predictive models.',
-                'location' => 'Boston, MA',
-                'type' => 'Full-time',
-                'salary_range' => '$95,000 - $145,000',
-                'requirements' => "- MS/PhD in Data Science, Statistics, or related field\n- Experience with Python, R, and SQL\n- Machine learning expertise\n- Strong mathematical background",
-                'benefits' => "- Competitive salary\n- Research budget\n- Conference attendance\n- Health benefits\n- Flexible schedule",
-                'deadline' => '2024-06-01',
-                'status' => 'active',
-                'user_id' => $employer->id
+            'Data Science' => [
+                'Data Scientist',
+                'Machine Learning Engineer',
+                'Data Analyst',
+                'Business Intelligence Developer',
+                'Data Engineer'
             ],
-            [
-                'title' => 'Mobile App Developer',
-                'company' => 'TechCorp Solutions',
-                'description' => 'Join our mobile development team to create innovative iOS and Android applications.',
-                'location' => 'Austin, TX',
-                'type' => 'Full-time',
-                'salary_range' => '$85,000 - $130,000',
-                'requirements' => "- 3+ years mobile development experience\n- Proficiency in Swift and Kotlin\n- Experience with mobile UI/UX principles\n- Knowledge of mobile app security",
-                'benefits' => "- Competitive pay\n- Health insurance\n- Stock options\n- Gym membership\n- Team building events",
-                'deadline' => '2024-05-25',
-                'status' => 'active',
-                'user_id' => $employer->id
+            'Artificial Intelligence' => [
+                'AI Engineer',
+                'Machine Learning Specialist',
+                'NLP Engineer',
+                'Computer Vision Engineer',
+                'AI Research Scientist'
             ],
-            [
-                'title' => 'Product Manager',
-                'company' => 'TechCorp Solutions',
-                'description' => 'We are seeking an experienced Product Manager to lead product strategy and development.',
-                'location' => 'Seattle, WA',
-                'type' => 'Full-time',
-                'salary_range' => '$100,000 - $160,000',
-                'requirements' => "- 5+ years product management experience\n- Strong technical background\n- Experience with Agile methodologies\n- Excellent communication skills",
-                'benefits' => "- Competitive salary\n- Equity package\n- Health and dental\n- 401(k) matching\n- Remote work options",
-                'deadline' => '2024-06-10',
-                'status' => 'active',
-                'user_id' => $employer->id
+            'Cybersecurity' => [
+                'Security Engineer',
+                'Information Security Analyst',
+                'Security Consultant',
+                'Penetration Tester',
+                'Security Architect'
             ],
-            [
-                'title' => 'IT Security Specialist',
-                'company' => 'TechCorp Solutions',
-                'description' => 'Join our cybersecurity team to protect our systems and infrastructure from security threats.',
-                'location' => 'Washington, DC',
-                'type' => 'Full-time',
-                'salary_range' => '$90,000 - $140,000',
-                'requirements' => "- 5+ years IT security experience\n- Security certifications (CISSP, CEH)\n- Experience with security tools and frameworks\n- Incident response experience",
-                'benefits' => "- Competitive pay\n- Health insurance\n- Certification support\n- Remote work options\n- Professional development",
-                'deadline' => '2024-06-05',
-                'status' => 'active',
-                'user_id' => $employer->id
+            'UI/UX Design' => [
+                'UI/UX Designer',
+                'Product Designer',
+                'Interaction Designer',
+                'Visual Designer',
+                'UX Researcher'
             ],
-            [
-                'title' => 'Quality Assurance Engineer',
-                'company' => 'TechCorp Solutions',
-                'description' => 'Seeking a QA Engineer to ensure the quality and reliability of our software products.',
-                'location' => 'Portland, OR',
-                'type' => 'Full-time',
-                'salary_range' => '$70,000 - $110,000',
-                'requirements' => "- 3+ years QA experience\n- Experience with automated testing\n- Knowledge of testing frameworks\n- Strong analytical skills",
-                'benefits' => "- Competitive salary\n- Health and dental\n- 401(k) plan\n- Flexible schedule\n- Professional training",
-                'deadline' => '2024-05-22',
-                'status' => 'active',
-                'user_id' => $employer->id
+            'IT Support' => [
+                'IT Support Specialist',
+                'System Administrator',
+                'Network Engineer',
+                'Technical Support Engineer',
+                'Help Desk Specialist'
             ]
         ];
 
-        foreach ($jobs as $job) {
-            Job::create($job);
-        }
+        return $titles[$category][array_rand($titles[$category])];
+    }
+
+    private function getSalaryRange(): string
+    {
+        $ranges = [
+            '15,000 - 25,000 ETB',
+            '25,000 - 35,000 ETB',
+            '35,000 - 45,000 ETB',
+            '45,000 - 55,000 ETB',
+            '55,000 - 65,000 ETB',
+            '65,000 - 75,000 ETB',
+            '75,000 - 85,000 ETB',
+            '85,000 - 95,000 ETB',
+            '95,000 - 120,000 ETB',
+            'Above 120,000 ETB'
+        ];
+
+        return $ranges[array_rand($ranges)];
+    }
+
+    private function getTechDescription($category): string
+    {
+        $descriptions = [
+            'Software Development' => "We are looking for an experienced software developer to join our dynamic development team. You will be responsible for developing high-quality software solutions, collaborating with cross-functional teams, and contributing to the full software development lifecycle.",
+            'Web Development' => "We are seeking a talented web developer to create and maintain modern, responsive web applications. You will work on challenging projects using the latest web technologies and frameworks.",
+            'Mobile Development' => "Join our mobile development team to build innovative mobile applications. You will be responsible for developing and maintaining mobile applications while ensuring the best possible performance, quality, and responsiveness.",
+            'Cloud Computing' => "We are looking for a cloud expert to help design, implement and manage our cloud infrastructure. You will work with cutting-edge cloud technologies and help drive our cloud transformation initiatives.",
+            'DevOps' => "Join our DevOps team to help build and maintain our CI/CD pipelines and infrastructure. You will be responsible for automating processes, improving deployment workflows, and maintaining system reliability.",
+            'Data Science' => "We are seeking a data scientist to help transform our data into actionable insights. You will work with large datasets, develop machine learning models, and create data-driven solutions.",
+            'Artificial Intelligence' => "Join our AI team to develop cutting-edge artificial intelligence solutions. You will work on challenging problems in machine learning, natural language processing, and computer vision.",
+            'Cybersecurity' => "We are looking for a security expert to help protect our systems and data. You will be responsible for implementing security measures, conducting security assessments, and responding to security incidents.",
+            'UI/UX Design' => "Join our design team to create beautiful and intuitive user interfaces. You will be responsible for the design of our products, ensuring excellent user experience and visual appeal.",
+            'IT Support' => "We are seeking an IT support specialist to help maintain our technical infrastructure and support our team. You will be responsible for resolving technical issues and ensuring smooth operation of our systems."
+        ];
+
+        return $descriptions[$category];
+    }
+
+    private function getTechRequirements($category): string
+    {
+        $requirements = [
+            'Software Development' => "- Bachelor's degree in Computer Science or related field\n- 3+ years of software development experience\n- Strong proficiency in multiple programming languages (e.g., Java, Python, JavaScript)\n- Experience with software design patterns and architecture\n- Strong problem-solving skills\n- Experience with agile development methodologies\n- Excellent communication and teamwork skills",
+            'Web Development' => "- 3+ years of web development experience\n- Strong proficiency in HTML, CSS, and JavaScript\n- Experience with modern web frameworks (React, Vue.js, Laravel)\n- Understanding of web security best practices\n- Knowledge of responsive design principles\n- Experience with version control systems (Git)\n- Good communication skills",
+            'Mobile Development' => "- 3+ years of mobile development experience\n- Strong knowledge of iOS/Android development\n- Experience with mobile frameworks (React Native, Flutter)\n- Understanding of mobile UI/UX principles\n- Knowledge of mobile security best practices\n- Experience with mobile app deployment\n- Strong problem-solving skills",
+            'Cloud Computing' => "- 3+ years of cloud computing experience\n- Strong knowledge of cloud platforms (AWS, Azure, GCP)\n- Experience with cloud architecture and design\n- Understanding of cloud security principles\n- Knowledge of infrastructure as code\n- Experience with containerization\n- Strong analytical skills",
+            'DevOps' => "- 3+ years of DevOps experience\n- Strong knowledge of CI/CD tools and practices\n- Experience with containerization and orchestration\n- Understanding of infrastructure as code\n- Knowledge of monitoring and logging tools\n- Strong scripting skills\n- Excellent problem-solving abilities",
+            'Data Science' => "- Master's degree in Data Science, Statistics, or related field\n- Strong programming skills in Python or R\n- Experience with machine learning frameworks\n- Strong statistical and mathematical skills\n- Knowledge of data visualization tools\n- Experience with big data technologies\n- Strong analytical thinking",
+            'Artificial Intelligence' => "- Master's/PhD in Computer Science, AI, or related field\n- Strong programming skills in Python\n- Experience with machine learning frameworks (TensorFlow, PyTorch)\n- Strong mathematical and statistical skills\n- Research experience in AI/ML\n- Published papers in AI/ML (preferred)\n- Strong problem-solving abilities",
+            'Cybersecurity' => "- Bachelor's degree in Cybersecurity or related field\n- Security certifications (CEH, CISSP, etc.)\n- Experience with security tools and frameworks\n- Knowledge of security best practices\n- Understanding of network security\n- Experience with security auditing\n- Strong analytical skills",
+            'UI/UX Design' => "- Bachelor's degree in Design or related field\n- 3+ years of UI/UX design experience\n- Proficiency in design tools (Figma, Adobe XD)\n- Strong portfolio of design work\n- Understanding of user-centered design\n- Knowledge of design systems\n- Excellent visual design skills",
+            'IT Support' => "- Bachelor's degree in IT or related field\n- IT certifications (CompTIA, MCSA, etc.)\n- Experience with IT support and troubleshooting\n- Knowledge of network administration\n- Understanding of IT security\n- Strong customer service skills\n- Good communication abilities"
+        ];
+
+        return $requirements[$category];
+    }
+
+    private function getBenefits(): string
+    {
+        return "- Competitive salary package\n- Health insurance\n- Annual leave and sick leave\n- Professional development opportunities\n- Performance bonuses\n- Friendly work environment\n- Transportation allowance\n- Meal allowance\n- Work from home options\n- Latest tech equipment provided\n- Training and certification support\n- Internet allowance";
     }
 }

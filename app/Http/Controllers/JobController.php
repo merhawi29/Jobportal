@@ -11,7 +11,7 @@ class JobController extends Controller
     public function __construct()
     {
         // Only apply auth middleware to specific methods
-        $this->middleware('auth')->only(['create', 'store']);
+        $this->middleware('auth')->only(['create', 'store', 'edit', 'update', 'destroy']);
     }
 
     public function create()
@@ -81,7 +81,7 @@ class JobController extends Controller
 
     public function index(Request $request)
     {
-        $query = Job::with('user');
+        $query = Job::with('user')->approved()->active();
 
         // Search filter
         if ($request->has('search')) {
@@ -94,16 +94,89 @@ class JobController extends Controller
             });
         }
 
+        // Sector filter
+        if ($request->has('sector') && $request->sector) {
+            $query->bySector($request->sector);
+        }
+
         // Job type filter
         if ($request->has('type')) {
-            $query->where('type', $request->type);
+            $types = is_array($request->type) ? $request->type : [$request->type];
+            $query->whereIn('type', $types);
+        }
+
+        // Category filter
+        if ($request->has('category') && $request->category) {
+            $query->where('category', $request->category);
         }
 
         $jobs = $query->orderBy('created_at', 'desc')->paginate(10);
 
         return Inertia::render('Jobs/Index', [
             'jobs' => $jobs,
-            'filters' => $request->only(['search', 'type'])
+            'filters' => $request->only(['search', 'sector', 'type', 'category']),
+            'jobTypes' => Job::JOB_TYPES
         ]);
+    }
+
+    public function edit(Job $job)
+    {
+        // Check if user owns the job
+        if ($job->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return Inertia::render('Employee/EditJob', [
+            'job' => $job
+        ]);
+    }
+
+    public function update(Request $request, Job $job)
+    {
+        // Check if user owns the job
+        if ($job->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        try {
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'company' => 'required|string|max:255',
+                'location' => 'required|string|max:255',
+                'type' => 'required|string|in:Full-time,Part-time,Contract,Freelance,Internship',
+                'salary_range' => 'required|string|max:100',
+                'description' => 'required|string',
+                'requirements' => 'required|string',
+                'benefits' => 'required|string',
+                'deadline' => 'required|date|after:today',
+            ]);
+
+            $job->update($validated);
+
+            return redirect()->route('jobs.show', $job->id)
+                ->with('success', 'Job updated successfully!');
+        } catch (\Exception $e) {
+            return back()->withErrors([
+                'error' => 'Failed to update job posting. ' . $e->getMessage()
+            ])->withInput();
+        }
+    }
+
+    public function destroy(Job $job)
+    {
+        // Check if user owns the job
+        if ($job->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        try {
+            $job->delete();
+            return redirect()->route('jobs.index')
+                ->with('success', 'Job deleted successfully!');
+        } catch (\Exception $e) {
+            return back()->withErrors([
+                'error' => 'Failed to delete job posting. ' . $e->getMessage()
+            ]);
+        }
     }
 }

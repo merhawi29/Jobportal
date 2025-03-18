@@ -5,6 +5,7 @@ interface Props {
     job: Job;
     auth: {
         user: null | {
+            id: number;
             role: string;
         };
     };
@@ -14,6 +15,7 @@ interface Props {
 
 export default function Show({ job, auth, isSaved = false, hasApplied = false }: Props) {
     const isJobSeeker = auth.user?.role === "Job_Seeker";
+    const isJobOwner = auth.user?.id === job.user_id;
     const [isApplying, setIsApplying] = useState(false);
     const [formData, setFormData] = useState({
         cover_letter: '',
@@ -55,16 +57,40 @@ export default function Show({ job, auth, isSaved = false, hasApplied = false }:
         });
     };
 
+    const handleDelete = () => {
+        if (confirm('Are you sure you want to delete this job post? This action cannot be undone.')) {
+            router.delete(route('jobs.destroy', job.id));
+        }
+    };
+
     return (
         <div className="bg-light min-vh-100">
             <Head title={`${job.title} - Job Details`} />
 
             <div className="container py-5">
-                <div className="mb-4">
+                <div className="mb-4 d-flex justify-content-between align-items-center">
                     <Link href={route('jobs.index')} className="btn btn-outline-success">
                         <i className="fas fa-arrow-left me-2"></i>
                         Back to Jobs
                     </Link>
+                    {isJobOwner && (
+                        <div className="d-flex gap-2">
+                            <Link
+                                href={route('jobs.edit', job.id)}
+                                className="btn btn-primary"
+                            >
+                                <i className="fas fa-edit me-2"></i>
+                                Edit Job
+                            </Link>
+                            <button
+                                onClick={handleDelete}
+                                className="btn btn-danger"
+                            >
+                                <i className="fas fa-trash me-2"></i>
+                                Delete Job
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 <div className="bg-white shadow-sm rounded p-4">

@@ -13,18 +13,10 @@ class CheckRole
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next, ...$roles): Response
+    public function handle(Request $request, Closure $next, string $role): Response
     {
-        if (!auth()->check()) {
-            return redirect('login');
-        }
-
-        if (!in_array(auth()->user()->role, $roles)) {
+        if (!$request->user() || $request->user()->role !== $role) {
             abort(403, 'Unauthorized action.');
-        }
-
-        if ($request->user()->isBanned()) {
-            return redirect('/')->with('error', 'Your account is currently banned.');
         }
 
         return $next($request);

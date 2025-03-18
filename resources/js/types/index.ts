@@ -32,12 +32,7 @@ export interface User {
     id: number;
     name: string;
     email: string;
-    avatar?: string;
-    profile_image?: string | null;
-    email_verified_at: string | null;
-    created_at: string;
-    updated_at: string;
-    [key: string]: unknown; // This allows for additional properties...
+    role: string;
 }
 
 export interface Activity {
@@ -66,19 +61,51 @@ export interface Activity {
 export interface Job {
     id: number;
     title: string;
+    description: string;
     company: string;
     location: string;
-    type: string;
     salary_range: string;
-    description: string;
+    type: string;
     requirements: string;
     benefits: string;
     deadline: string;
-    status: string;
-    user_id: number;
+    status: 'pending' | 'approved' | 'rejected';
     created_at: string;
     updated_at: string;
+    applications_count?: number;
+    user_id: number;
     user?: {
         name: string;
     };
+}
+
+export interface JobApplication {
+    id: number;
+    job_id: number;
+    user_id: number;
+    status: 'pending' | 'accepted' | 'rejected';
+    created_at: string;
+    updated_at: string;
+    job: Job;
+    user: User;
+}
+
+export interface Pagination<T> {
+    current_page: number;
+    data: T[];
+    first_page_url: string;
+    from: number;
+    last_page: number;
+    last_page_url: string;
+    links: {
+        url: string | null;
+        label: string;
+        active: boolean;
+    }[];
+    next_page_url: string | null;
+    path: string;
+    per_page: number;
+    prev_page_url: string | null;
+    to: number;
+    total: number;
 }
