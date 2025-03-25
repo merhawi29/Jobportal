@@ -24,7 +24,7 @@ class SavedJobController extends Controller
     public function store(Job $job)
     {
         $savedJob = SavedJob::where('user_id', auth()->id())
-            ->where('job_id', $job->id)
+            ->where('joblists_id', $job->id)
             ->first();
 
         if ($savedJob) {
@@ -33,7 +33,7 @@ class SavedJobController extends Controller
 
         SavedJob::create([
             'user_id' => auth()->id(),
-            'job_id' => $job->id
+            'joblists_id' => $job->id
         ]);
 
         return back()->with('success', 'Job saved successfully!');
@@ -42,7 +42,7 @@ class SavedJobController extends Controller
     public function destroy(Job $job)
     {
         SavedJob::where('user_id', auth()->id())
-            ->where('job_id', $job->id)
+            ->where('joblists_id', $job->id)
             ->delete();
 
         return back()->with('success', 'Job removed from saved list.');

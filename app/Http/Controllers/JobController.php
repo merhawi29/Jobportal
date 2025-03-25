@@ -65,6 +65,7 @@ class JobController extends Controller
         if (auth()->check()) {
             $isSaved = $job->savedBy()
                 ->where('user_id', auth()->id())
+                ->where('joblists_id', $job->id)
                 ->exists();
 
             $hasApplied = $job->applications()
@@ -82,6 +83,7 @@ class JobController extends Controller
     public function index(Request $request)
     {
         $query = Job::with('user')->approved()->active();
+        // $query = Job::with('user');
 
         // Search filter
         if ($request->has('search')) {

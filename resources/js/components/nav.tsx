@@ -8,6 +8,7 @@ interface User {
     name: string;
     email: string;
     role: string;
+    photo?: string | null;
 }
 
 interface Props {
@@ -52,28 +53,7 @@ const Nav = () => {
         };
 
         window.addEventListener('scroll', handleScroll);
-
-        // Add Bootstrap CDN link
-        const linkElements = [
-            { rel: 'stylesheet', href: 'https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css' },
-            { rel: 'stylesheet', href: '/assets/css/fontawesome-all.min.css' }
-        ];
-
-        linkElements.forEach(({ rel, href }) => {
-            if (!document.querySelector(`link[href="${href}"]`)) {
-                const link = document.createElement('link');
-                link.rel = rel;
-                link.href = href;
-                document.head.appendChild(link);
-            }
-        });
-
-        // Add Bootstrap JS
-        if (!document.querySelector('script[src*="bootstrap.bundle.min.js"]')) {
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js';
-            document.body.appendChild(script);
-        }
+        handleScroll(); // Call it initially
 
         return () => {
             document.body.style.paddingTop = '0';
@@ -92,7 +72,7 @@ const Nav = () => {
                     <div className="row align-items-center py-3">
                         <div className="col-lg-3 col-md-2">
                             <div className="navbar-brand">
-                                <Link href="/"><img src="/assets/img/logo/logo.png" alt="" style={{ maxWidth: '160px' }} /></Link>
+                                <Link href="/"><img src="/assets/img/logo/super.png" alt="" style={{ maxWidth: '100px' }} /></Link>
                             </div>
                         </div>
 
@@ -184,7 +164,18 @@ const Nav = () => {
                                                                 Received Applications
                                                             </Link>
                                                         </li>
-                                                        <li><hr className="dropdown-divider" /></li>
+                                                        <li>
+                                                            <Link
+                                                               href={route('interviews.index')}
+                                                                className="dropdown-item"
+                                                            >
+                                                                <i className="fas fa-calendar-alt me-2"></i>
+                                                                Interviews
+                                                            </Link>
+                                                        </li>
+
+                                                <li><hr className="dropdown-divider" /></li>
+
                                                     </ul>
                                                 </li>
                                             )}
@@ -232,15 +223,11 @@ const Nav = () => {
                                                             </Link>
                                                         </li>
                                                         <li><hr className="dropdown-divider" /></li>
-                                                        <li>
-                                                            <Link className="dropdown-item nav-hover" href="/moderator/settings">
-                                                                <i className="fas fa-cog me-2"></i>
-                                                                Settings
-                                                            </Link>
-                                                        </li>
+                                                       
                                                     </ul>
                                                 </li>
                                             )}
+                                           
                                         </ul>
                                     </div>
                                 </nav>
@@ -255,7 +242,7 @@ const Nav = () => {
                                                     </span>
                                                 )}
                                             </Link>
-                                            <Link href="/notifications" className="btn btn-link position-relative me-4 text-primary">
+                                            <Link href="/job-alerts" className="btn btn-link position-relative me-4 text-primary">
                                                 <i className="fas fa-bell fa-lg"></i>
                                                 {alertCount > 0 && (
                                                     <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
@@ -264,10 +251,26 @@ const Nav = () => {
                                                 )}
                                             </Link>
                                             <div className="dropdown">
-                                                <button className="btn btn-link text-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                    <img src="/assets/img/avatar/avatar-1.jpg" alt="" style={{ width: '40px', height: '40px', borderRadius: '50%' }} />
-                                                </button>
-                                                <ul className="dropdown-menu">
+                                                <Link
+                                                    className="d-flex align-items-center text-dark text-decoration-none dropdown-toggle"
+                                                    href="#"
+                                                    role="button"
+                                                    data-bs-toggle="dropdown"
+                                                >
+                                                    <img
+                                                        src={auth.user?.photo || '/default-avatar.png'}
+                                                        alt={`${auth.user?.name}'s avatar`}
+                                                        className="rounded-circle me-2"
+                                                        style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                                                        onError={(e) => {
+                                                            const target = e.target as HTMLImageElement;
+                                                            target.onerror = null;
+                                                            target.src = '/default-avatar.png';
+                                                        }}
+                                                    />
+                                                    <span className="d-none d-sm-inline">{auth.user?.name}</span>
+                                                </Link>
+                                                <ul className="dropdown-menu dropdown-menu-end">
                                                     <li>
                                                        {isJobSeeker ? (
                                                            <Link
@@ -487,10 +490,26 @@ const Nav = () => {
                                                 )}
                                             </Link>
                                             <div className="dropdown">
-                                                <button className="btn btn-link text-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                    <img src="/assets/img/avatar/avatar-1.jpg" alt="" style={{ width: '40px', height: '40px', borderRadius: '50%' }} />
-                                                </button>
-                                                <ul className="dropdown-menu">
+                                                <Link
+                                                    className="d-flex align-items-center text-dark text-decoration-none dropdown-toggle"
+                                                    href="#"
+                                                    role="button"
+                                                    data-bs-toggle="dropdown"
+                                                >
+                                                    <img
+                                                        src={auth.user?.photo || '/default-avatar.png'}
+                                                        alt={`${auth.user?.name}'s avatar`}
+                                                        className="rounded-circle me-2"
+                                                        style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                                                        onError={(e) => {
+                                                            const target = e.target as HTMLImageElement;
+                                                            target.onerror = null;
+                                                            target.src = '/default-avatar.png';
+                                                        }}
+                                                    />
+                                                    <span className="d-none d-sm-inline">{auth.user?.name}</span>
+                                                </Link>
+                                                <ul className="dropdown-menu dropdown-menu-end">
                                                    <li>
                                                        {auth.user?.role === 'job_seeker' ? (
                                                            <Link

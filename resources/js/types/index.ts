@@ -61,29 +61,29 @@ export interface Activity {
 export interface Job {
     id: number;
     title: string;
-    description: string;
     company: string;
     location: string;
-    salary_range: string;
     type: string;
+    salary_range: string;
+    description: string;
     requirements: string;
     benefits: string;
     deadline: string;
-    status: 'pending' | 'approved' | 'rejected';
     created_at: string;
     updated_at: string;
-    applications_count?: number;
-    user_id: number;
-    user?: {
+    user: {
         name: string;
+        verified: boolean;
     };
 }
 
 export interface JobApplication {
     id: number;
-    job_id: number;
+    joblists_id: number;
     user_id: number;
-    status: 'pending' | 'accepted' | 'rejected';
+    status: 'pending' | 'under_review' | 'shortlisted' | 'interview_scheduled' | 'interviewed' | 'hired' | 'rejected';
+    interview_date?: string;
+    interview_notes?: string;
     created_at: string;
     updated_at: string;
     job: Job;
@@ -109,3 +109,31 @@ export interface Pagination<T> {
     to: number;
     total: number;
 }
+
+export interface JobAlert {
+    id: number;
+    user_id: number;
+    job_title?: string;
+    job_type?: string;
+    location?: string;
+    salary_min?: number;
+    salary_max?: number;
+    keywords?: string[];
+    notification_type: 'email' | 'push' | 'both';
+    frequency: 'immediately' | 'daily' | 'weekly';
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export type PageProps<T extends Record<string, any> = Record<string, any>> = {
+    auth: {
+        user: {
+            id: number;
+            name: string;
+            email: string;
+            role: string;
+        };
+    };
+    errors: Record<string, string>;
+} & T;

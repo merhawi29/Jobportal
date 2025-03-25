@@ -25,6 +25,12 @@ export default function ModeratorLayout({ children }: Props) {
                     </div>
                     <ul className="nav flex-column">
                         <li className="nav-item">
+                            <Link href="/" className="nav-link text-white">
+                                <i className="fas fa-home me-2"></i>
+                                Back to Home
+                            </Link>
+                        </li>
+                        <li className="nav-item">
                             <Link href="/moderator/dashboard" className="nav-link text-white">
                                 <i className="fas fa-tachometer-alt me-2"></i>
                                 Dashboard
@@ -60,10 +66,15 @@ export default function ModeratorLayout({ children }: Props) {
                                 Activity Logs
                             </Link>
                         </li>
-                        <li className="nav-item">
-                            <Link href="/moderator/settings" className="nav-link text-white">
-                                <i className="fas fa-cog me-2"></i>
-                                Settings
+                        <li className="nav-item mt-4">
+                            <Link
+                                className="nav-link text-danger d-flex align-items-center" 
+                                href="/logout"
+                                method="post"
+                                as="button"
+                            >
+                                <i className="fas fa-sign-out-alt me-2"></i>
+                                Logout
                             </Link>
                         </li>
                     </ul>

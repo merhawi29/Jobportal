@@ -7,10 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\Traits\CausesActivity;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Job extends Model
 {
     use HasFactory, LogsActivity, CausesActivity;
+
+    protected $table = 'joblists';
 
     protected $fillable = [
         'user_id',
@@ -83,19 +86,19 @@ class Job extends Model
             ->dontSubmitEmptyLogs();
     }
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
     public function applications()
     {
-        return $this->hasMany(JobApplication::class);
+        return $this->hasMany(JobApplication::class, 'joblists_id');
     }
 
     public function savedBy()
     {
-        return $this->hasMany(SavedJob::class);
+        return $this->hasMany(SavedJob::class, 'joblists_id');
     }
 
     public function isPending()
@@ -131,5 +134,25 @@ class Job extends Model
     public function scopeBySector($query, $sector)
     {
         return $query->where('sector', $sector);
+    }
+
+    public function scopeFilter($query, array $filters)
+    {
+        $query->when($filters['search'] ?? null, function ($query, $search) {
+            $query->where(function ($query) use ($search) {
+                $query->where('title', 'like', '%' . $search . '%')
+                    ->orWhere('company', 'like', '%' . $search . '%')
+                    ->orWhere('location', 'like', '%' . $search . '%');
+            });
+        });
+
+        $query->when($filters['type'] ?? null, function ($query, $type) {
+            $types = explode(',', $type);
+            $query->whereIn('type', $types);
+        });
+
+        $query->when($filters['sector'] ?? null, function ($query, $sector) {
+            $query->where('sector', $sector);
+        });
     }
 }

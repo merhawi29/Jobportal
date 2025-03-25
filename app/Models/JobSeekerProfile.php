@@ -2,51 +2,50 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class JobSeekerProfile extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
+        'name',
+        'email',
+        'phone',
+        'photo',
         'location',
+        'about',
         'education',
         'experience',
         'skills',
-        'certifications',
-        'about',
         'linkedin_url',
         'github_url',
-        'portfolio_url',
         'resume',
-        'is_public',
-        'show_email',
-        'show_phone',
-        'show_education',
-        'show_experience',
-        'show_skills',
-        'show_certifications',
-        'show_social_links',
-        'show_resume'
+        'privacy_settings'
     ];
 
     protected $casts = [
-        'is_public' => 'boolean',
         'education' => 'array',
         'experience' => 'array',
         'skills' => 'array',
-        'certifications' => 'array',
-        'show_email' => 'boolean',
-        'show_phone' => 'boolean',
-        'show_education' => 'boolean',
-        'show_experience' => 'boolean',
-        'show_skills' => 'boolean',
-        'show_certifications' => 'boolean',
-        'show_social_links' => 'boolean',
-        'show_resume' => 'boolean'
+        'privacy_settings' => 'array'
     ];
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
+
+    protected $attributes = [
+        'privacy_settings' => '{
+            "profile_visibility": "public",
+            "show_email": false,
+            "show_phone": false,
+            "show_education": true,
+            "show_experience": true
+        }'
+    ];
 }

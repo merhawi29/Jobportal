@@ -1,212 +1,267 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Eye, EyeOff, Lock } from 'lucide-react';
 
-interface Props {
-    profile: {
-        name: string;
-        email: string;
-        phone: string;
-        location: string | null;
-        education: any[] | null;
-        experience: any[] | null;
-        skills: string[] | null;
-        certifications: any[] | null;
-        about: string | null;
-        linkedin_url: string | null;
-        github_url: string | null;
-        profile_image: string | null;
-        resume: string | null;
-        is_public: boolean;
+interface ProfileData {
+    name: string;
+    email: string;
+    phone: string | null;
+    photo: string | null;
+    location: string;
+    education: Array<{ institution: string; degree: string }>;
+    experience: Array<{ company: string; position: string }>;
+    skills: string[];
+    about: string;
+    linkedin_url: string | null;
+    github_url: string | null;
+    resume: string | null;
+    privacy_settings: {
+        profile_visibility: 'public' | 'private' | 'registered';
         show_email: boolean;
         show_phone: boolean;
         show_education: boolean;
         show_experience: boolean;
-        show_skills: boolean;
-        show_certifications: boolean;
-        show_social_links: boolean;
-        show_resume: boolean;
     };
-    isOwnProfile?: boolean;
 }
 
-export default function Show({ profile, isOwnProfile = false }: Props) {
+interface Props {
+    profile: ProfileData;
+    isOwnProfile: boolean;
+    flash?: {
+        success?: string;
+        error?: string;
+    };
+    error?: string;
+}
+
+export default function Show({ profile, isOwnProfile, flash, error }: Props) {
+    const PrivacyIndicator = ({ isVisible }: { isVisible: boolean }) => (
+        <span className="inline-flex items-center text-sm text-gray-500 ml-2">
+            {isVisible ? (
+                <Eye className="w-4 h-4 mr-1" />
+            ) : (
+                <EyeOff className="w-4 h-4 mr-1" />
+            )}
+            {isVisible ? 'Visible' : 'Hidden'}
+        </span>
+    );
+
     return (
-        <>
-            <div className="py-12">
-                <Head title="Profile" />
+        <div className="min-h-screen bg-gray-50 py-12">
+            <Head title="Profile" />
 
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <div className="mb-6 flex justify-between items-center">
-                        <Link
-                            href={route('home')}
-                            className="btn btn-outline-success"
-                        >
-                            <i className="fas fa-arrow-left me-2"></i>
-                            Back to Home
-                        </Link>
-                        {isOwnProfile && (
-                            <Link
-                                href={route('jobseeker.profile.edit')}
-                                className="btn btn-outline-success"
-                            >
-                                <i className="fas fa-edit me-2"></i>
-                                Edit Profile
-                            </Link>
-                        )}
+            <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                {flash?.success && (
+                    <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+                        {flash?.success}
                     </div>
+                )}
+                {(flash?.error || error) && (
+                    <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                        {flash?.error || error}
+                    </div>
+                )}
 
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        {/* Profile Header */}
-                        <div className="p-6 border-b border-gray-200 bg-light">
-                            <div className="flex items-center gap-6">
-                                {profile.profile_image ? (
-                                    <img
-                                        src={profile.profile_image}
-                                        alt={profile.name}
-                                        className="rounded-circle"
-                                        style={{ width: '120px', height: '120px', objectFit: 'cover' }}
-                                    />
-                                ) : (
-                                    <div
-                                        className="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center"
-                                        style={{ width: '120px', height: '120px' }}
-                                    >
-                                        <i className="fas fa-user fa-3x"></i>
-                                    </div>
-                                )}
-                                <div>
-                                    <h1 className="text-3xl font-bold mb-2">{profile.name}</h1>
-                                    <div className="text-gray-600">
-                                        <p><i className="fas fa-map-marker-alt me-2"></i>{profile.location || 'Location not specified'}</p>
-                                        {(isOwnProfile || profile.show_email) && (
-                                            <p><i className="fas fa-envelope me-2"></i>{profile.email}</p>
-                                        )}
-                                        {(isOwnProfile || profile.show_phone) && profile.phone && (
-                                            <p><i className="fas fa-phone me-2"></i>{profile.phone}</p>
-                                        )}
-                                    </div>
+                <div className="mb-6 flex justify-between items-center">
+                    <Link href={'/'} className="btn btn-outline-secondary">
+                        <i className="fas fa-home me-2"></i>
+                        Back to Home
+                    </Link>
+
+                    {isOwnProfile && (
+                        <Link
+                            href={route('jobseeker.profile.edit')}
+                            className="inline-flex items-center px-4 py-2 btn btn-outline-success text-black rounded-md "
+                        >
+                            Edit Profile
+                        </Link>
+                    )}
+                </div>
+
+                <div className="bg-gradient-to-br from-green-50 to-white overflow-hidden shadow-sm rounded-lg">
+                    <div className="p-8">
+                        <div className="flex justify-between items-center mb-8">
+                            <div>
+                                <h2 className="text-3xl font-bold text-gray-900">Profile</h2>
+                                <div className="flex items-center mt-2">
+                                    <span className="text-sm text-gray-500 flex items-center">
+                                        <Lock className="w-4 h-4 mr-1" />
+                                        Visibility: {profile.privacy_settings.profile_visibility}
+                                    </span>
                                 </div>
                             </div>
+                            {/* {isOwnProfile && (
+                                <Button asChild>
+                                    <Link href={route('jobseeker.profile.edit')}>Edit Profile</Link>
+                                </Button>
+                            )} */}
                         </div>
 
-                        {/* About Section */}
-                        <div className="p-6 border-b border-gray-200">
-                            <h2 className="text-xl font-semibold mb-4">About</h2>
-                            <p className="text-gray-600">{profile.about || 'No description provided.'}</p>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <div className="space-y-6">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Personal Information</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div className="mb-4">
+                                            <img
+                                                src={profile.photo || '/default-avatar.png'}
+                                                alt={`${profile.name}'s avatar`}
+                                                className="w-32 h-32 rounded-full object-cover border-4 border-green-100 mx-auto"
+                                                onError={(e) => {
+                                                    const target = e.target as HTMLImageElement;
+                                                    target.onerror = null;
+                                                    target.src = '/default-avatar.png';
+                                                }}
+                                            />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-semibold">Name</h4>
+                                            <p>{profile.name}</p>
+                                        </div>
+                                        {(isOwnProfile || profile.privacy_settings.show_email) && (
+                                            <div>
+                                                <h4 className="font-semibold flex items-center">
+                                                    Email
+                                                    {isOwnProfile && <PrivacyIndicator isVisible={profile.privacy_settings.show_email} />}
+                                                </h4>
+                                                <p>{profile.email}</p>
+                                            </div>
+                                        )}
+                                        {(isOwnProfile || profile.privacy_settings.show_phone) && profile.phone && (
+                                            <div>
+                                                <h4 className="font-semibold flex items-center">
+                                                    Phone
+                                                    {isOwnProfile && <PrivacyIndicator isVisible={profile.privacy_settings.show_phone} />}
+                                                </h4>
+                                                <p>{profile.phone}</p>
+                                            </div>
+                                        )}
+                                        <div>
+                                            <h4 className="font-semibold">Location</h4>
+                                            <p>{profile.location}</p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Links</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        {profile.linkedin_url && (
+                                            <a
+                                                href={profile.linkedin_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-600 hover:underline block"
+                                            >
+                                                LinkedIn Profile
+                                            </a>
+                                        )}
+                                        {profile.github_url && (
+                                            <a
+                                                href={profile.github_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-600 hover:underline block"
+                                            >
+                                                GitHub Profile
+                                            </a>
+                                        )}
+                                        {profile.resume && (
+                                            <a
+                                                href={profile.resume}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-600 hover:underline block"
+                                            >
+                                                View Resume
+                                            </a>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            </div>
+
+                            <div className="space-y-6">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>About Me</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="whitespace-pre-wrap">{profile.about}</p>
+                                    </CardContent>
+                                </Card>
+
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Skills</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="flex flex-wrap gap-2">
+                                            {profile.skills.map((skill, index) => (
+                                                <span
+                                                    key={index}
+                                                    className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm"
+                                                >
+                                                    {skill}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+
+                            <div className="space-y-6">
+                                {(isOwnProfile || profile.privacy_settings.show_education) && (
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center">
+                                                Education
+                                                {isOwnProfile && <PrivacyIndicator isVisible={profile.privacy_settings.show_education} />}
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="space-y-4">
+                                                {profile.education.map((edu, index) => (
+                                                    <div key={index} className="border-b last:border-0 pb-4 last:pb-0">
+                                                        <h4 className="font-semibold">{edu.institution}</h4>
+                                                        <p className="text-gray-600">{edu.degree}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                )}
+
+                                {(isOwnProfile || profile.privacy_settings.show_experience) && (
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center">
+                                                Experience
+                                                {isOwnProfile && <PrivacyIndicator isVisible={profile.privacy_settings.show_experience} />}
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="space-y-4">
+                                                {profile.experience.map((exp, index) => (
+                                                    <div key={index} className="border-b last:border-0 pb-4 last:pb-0">
+                                                        <h4 className="font-semibold">{exp.company}</h4>
+                                                        <p className="text-gray-600">{exp.position}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                )}
+                            </div>
                         </div>
-
-                        {/* Skills Section */}
-                        {(isOwnProfile || profile.show_skills) && (
-                            <div className="p-6 border-b border-gray-200">
-                                <h2 className="text-xl font-semibold mb-4">Skills</h2>
-                                <div className="flex flex-wrap gap-2">
-                                    {profile.skills && profile.skills.length > 0 ? (
-                                        profile.skills.map((skill, index) => (
-                                            <span key={index} className="badge bg-success">{skill}</span>
-                                        ))
-                                    ) : (
-                                        <p className="text-gray-600">No skills listed.</p>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Experience Section */}
-                        {(isOwnProfile || profile.show_experience) && (
-                            <div className="p-6 border-b border-gray-200">
-                                <h2 className="text-xl font-semibold mb-4">Experience</h2>
-                                {profile.experience && profile.experience.length > 0 ? (
-                                    <div className="space-y-4">
-                                        {profile.experience.map((exp, index) => (
-                                            <div key={index} className="border-l-4 border-success pl-4">
-                                                <h3 className="font-semibold">{exp.position}</h3>
-                                                <p className="text-success">{exp.company}</p>
-                                                <p className="text-gray-600">
-                                                    {exp.start_date} - {exp.end_date || 'Present'}
-                                                </p>
-                                                <p className="mt-2">{exp.description}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <p className="text-gray-600">No experience listed.</p>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Education Section */}
-                        {(isOwnProfile || profile.show_education) && (
-                            <div className="p-6 border-b border-gray-200">
-                                <h2 className="text-xl font-semibold mb-4">Education</h2>
-                                {profile.education && profile.education.length > 0 ? (
-                                    <div className="space-y-4">
-                                        {profile.education.map((edu, index) => (
-                                            <div key={index} className="border-l-4 border-success pl-4">
-                                                <h3 className="font-semibold">{edu.degree}</h3>
-                                                <p className="text-success">{edu.institution}</p>
-                                                <p className="text-gray-600">
-                                                    {edu.start_date} - {edu.end_date || 'Present'}
-                                                </p>
-                                                <p>{edu.field}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <p className="text-gray-600">No education listed.</p>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Certifications Section */}
-                        {(isOwnProfile || profile.show_certifications) && (
-                            <div className="p-6 border-b border-gray-200">
-                                <h2 className="text-xl font-semibold mb-4">Certifications</h2>
-                                {profile.certifications && profile.certifications.length > 0 ? (
-                                    <div className="space-y-4">
-                                        {profile.certifications.map((cert, index) => (
-                                            <div key={index} className="border-l-4 border-success pl-4">
-                                                <h3 className="font-semibold">{cert.name}</h3>
-                                                <p className="text-success">{cert.issuer}</p>
-                                                <p className="text-gray-600">{cert.date}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <p className="text-gray-600">No certifications listed.</p>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Social Links & Resume */}
-                        {(isOwnProfile || profile.show_social_links || profile.show_resume) && (
-                            <div className="p-6">
-                                <h2 className="text-xl font-semibold mb-4">Links & Documents</h2>
-                                <div className="space-y-3">
-                                    {(isOwnProfile || profile.show_social_links) && (
-                                        <>
-                                            {profile.linkedin_url && (
-                                                <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" className="btn btn-outline-success btn-sm me-2">
-                                                    <i className="fab fa-linkedin me-2"></i>LinkedIn Profile
-                                                </a>
-                                            )}
-                                            {profile.github_url && (
-                                                <a href={profile.github_url} target="_blank" rel="noopener noreferrer" className="btn btn-outline-success btn-sm me-2">
-                                                    <i className="fab fa-github me-2"></i>GitHub Profile
-                                                </a>
-                                            )}
-                                        </>
-                                    )}
-                                    {(isOwnProfile || profile.show_resume) && profile.resume && (
-                                        <a href={profile.resume} target="_blank" rel="noopener noreferrer" className="btn btn-outline-success btn-sm">
-                                            <i className="fas fa-file-pdf me-2"></i>View Resume
-                                        </a>
-                                    )}
-                                </div>
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     );
-}
+} 

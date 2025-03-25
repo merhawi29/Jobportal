@@ -17,9 +17,10 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('phone')->nullable();
-
             $table->enum('role', ['job_seeker', 'employer', 'moderator', 'admin'])->default('job_seeker');
-            $table->foreignId('company_id')->nullable()->constrained('companies')->onDelete('set null');
+            $table->enum('status', ['active', 'banned', 'suspended'])->default('active');
+            $table->timestamp('banned_until')->nullable();
+            $table->text('ban_reason')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

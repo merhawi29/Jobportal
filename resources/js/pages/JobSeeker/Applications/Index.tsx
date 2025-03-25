@@ -39,6 +39,14 @@ export default function Index({ applications }: Props) {
             <Head title="My Applications" />
 
             <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div className="container py-5">
+                    <div className="mb-6">
+                        <a href="/" className="btn btn-secondary">
+                            <i className="fas fa-home me-2"></i>
+                            Back to Home
+                        </a>
+                    </div>
+                </div>
                 <div className="mb-6">
                     <h1 className="text-3xl font-bold">My Applications</h1>
                     <p className="text-gray-600">Track and manage your job applications</p>

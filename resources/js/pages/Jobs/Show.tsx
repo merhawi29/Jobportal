@@ -14,7 +14,8 @@ interface Props {
 }
 
 export default function Show({ job, auth, isSaved = false, hasApplied = false }: Props) {
-    const isJobSeeker = auth.user?.role === "Job_Seeker";
+    const isJobSeeker = auth.user?.role === "job_seeker";
+    // console.log(isJobSeeker);
     const isJobOwner = auth.user?.id === job.user_id;
     const [isApplying, setIsApplying] = useState(false);
     const [formData, setFormData] = useState({

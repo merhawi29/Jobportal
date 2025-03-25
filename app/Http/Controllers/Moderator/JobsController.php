@@ -84,7 +84,7 @@ class JobsController extends Controller
 
         // Log the action
         ActivityLog::info('Job updated', [
-            'job_id' => $job->id,
+            'joblists_id' => $job->id,
             'changes' => $validated,
             'user_id' => auth()->id()
         ]);
@@ -99,7 +99,7 @@ class JobsController extends Controller
 
         // Log the action
         ActivityLog::info('Job approved', [
-            'job_id' => $job->id,
+            'joblists_id' => $job->id,
             'user_id' => auth()->id()
         ]);
 
@@ -119,7 +119,7 @@ class JobsController extends Controller
 
         // Log the action
         ActivityLog::info('Job rejected', [
-            'job_id' => $job->id,
+            'joblists_id' => $job->id,
             'reason' => $validated['reason'],
             'user_id' => auth()->id()
         ]);
@@ -131,7 +131,7 @@ class JobsController extends Controller
     {
         // Log the action before deletion
         ActivityLog::info('Job deleted', [
-            'job_id' => $job->id,
+            'joblists_id' => $job->id,
             'user_id' => auth()->id()
         ]);
 

@@ -78,7 +78,8 @@ export default function Edit({ user }: Props) {
                                             onChange={e => setData('role', e.target.value)}
                                             disabled={processing}
                                         >
-                                            <option value="user">User</option>
+                                            <option disabled value="">Select Role</option>
+                                            <option value="job_seeker">Job Seeker</option>
                                             <option value="employer">Employer</option>
                                         </select>
                                         {errors.role && (

@@ -29,16 +29,14 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'role' => 'required|string|in:user,employer',
-            'status' => 'required|string|in:active,banned'
+        // dd($request->all());
+
+        $user->update([
+            'role' => $request->role,
+            'status' => $request->status
         ]);
 
-        $user->update($validated);
-
-        return redirect()->back()->with('success', 'User updated successfully');
+        return back()->with('success', 'User updated successfully');
     }
 
     public function ban(User $user, Request $request)

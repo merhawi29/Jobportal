@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { Job } from '@/types';
 import { Pagination } from '@/types';
 
@@ -11,8 +11,19 @@ export default function Index({ jobs }: Props) {
     return (
         <>
             <Head title="My Job Posts" />
-            <div className="container py-5">
-                <h1 className="mb-4">My Job Posts</h1>
+            <div className="container bg-light border-bottom py-3">
+            <div className="container mb-5">
+                    <nav aria-label="breadcrumb">
+                        <ol className="breadcrumb mb-0">
+                            <li className="breadcrumb-item">
+                                <Link href="/" className="text-decoration-none">
+                                    <i className="fas fa-home"></i> Home
+                                </Link>
+                            </li>
+                            <li className="breadcrumb-item active">My Job Post</li>
+                        </ol>
+                    </nav>
+                </div>      
                 <div className="card">
                     <div className="card-body">
                         <div className="table-responsive">
@@ -39,7 +50,7 @@ export default function Index({ jobs }: Props) {
                                             <td>{job.applications_count || 0}</td>
                                             <td>
                                                 <div className="btn-group">
-                                                    <a href={`/jobs/${job.id}`} className="btn btn-sm btn-primary">
+                                                    <a href={`/jobs/${job.id}`} className="btn btn-sm btn-success">
                                                         <i className="fas fa-eye"></i>
                                                     </a>
                                                     <a href={`/jobs/${job.id}/edit`} className="btn btn-sm btn-warning">

@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Job;
 use App\Models\JobApplication;
+use App\Notifications\JobApplicationNotification;
+use Illuminate\Support\Facades\DB;
 
 class JobManagementController extends Controller
 {
@@ -17,7 +19,7 @@ class JobManagementController extends Controller
             ->latest()
             ->paginate(10);
 
-        return Inertia::render('Employer/Jobs/Index', [
+        return Inertia::render('Employee/Jobs/Index', [
             'jobs' => $jobs
         ]);
     }
@@ -31,8 +33,71 @@ class JobManagementController extends Controller
         ->latest()
         ->paginate(10);
 
-        return Inertia::render('Employer/Applications/Index', [
+        return Inertia::render('Employee/Applications/Index', [
             'applications' => $applications
         ]);
+    }
+
+    public function show(JobApplication $application)
+    {
+        // Ensure the employer owns the job this application is for
+        if ($application->job->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        return Inertia::render('Employee/Applications/Show', [
+            'application' => $application->load(['job', 'user'])
+        ]);
+    }
+
+    public function updateStatus(Request $request, JobApplication $application)
+    {
+        // Ensure the employer owns the job this application is for
+        if ($application->job->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'status' => ['required', 'string', 'in:pending,shortlisted,hired,rejected']
+        ]);
+
+        // Make sure status is passed as a string
+        $application->status = $validated['status'];
+        $application->save();
+
+        // Send notification to job seeker
+        $application->user->notify(new JobApplicationNotification(
+            $application->job->title,
+            $validated['status'],
+            $request->message ?? 'Your application status has been updated.'
+        ));
+
+        return back()->with('success', 'Application status updated successfully');
+    }
+
+    public function sendNotification(Request $request, JobApplication $application)
+    {
+        // Validate the employer owns this job application
+        if ($application->job->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'message' => 'required|string|max:500',
+            'status' => 'required|in:shortlisted,hired,rejected'
+        ]);
+
+        // Fix: Ensure status is properly quoted by using array syntax
+        $application->status = $validated['status'];
+        $application->save();
+
+        // Send notification to job seeker
+        $application->user->notify(new JobApplicationNotification(
+            $application->job->title,
+            $validated['status'],
+            $validated['message']
+        ));
+
+        return back()->with('success', 'Notification sent successfully');
     }
 } 

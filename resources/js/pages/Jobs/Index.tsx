@@ -27,6 +27,27 @@ export default function Index({ jobs, filters, auth }: Props) {
         jobTypes: true,
         jobSites: true
     });
+    const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>([]);
+
+    const jobTypes = [
+        { id: 'permanent', label: 'Permanent (Full-time)' },
+        { id: 'part-time', label: 'Part-time' },
+        { id: 'remote', label: 'Remote' },
+        { id: 'freelance', label: 'Freelance' },
+        { id: 'contractual', label: 'Contractual' },
+        { id: 'volunteer', label: 'Volunteer' },
+        { id: 'intern-paid', label: 'Intern (Paid)' },
+        { id: 'intern-unpaid', label: 'Intern (Unpaid)' }
+    ];
+
+    const handleJobTypeChange = (typeId: string) => {
+        setSelectedJobTypes(prev => {
+            if (prev.includes(typeId)) {
+                return prev.filter(type => type !== typeId);
+            }
+            return [...prev, typeId];
+        });
+    };
 
     const formatTimeAgo = (date: string) => {
         const now = new Date();
@@ -47,12 +68,19 @@ export default function Index({ jobs, filters, auth }: Props) {
     return (
         <>
             <Head title="Job Listings" />
-            <div className="container-fluid py-4">
-                <div className="mb-4">
-                    <Link href={'/'} className="btn btn-outline-success">
-                        <i className="fas fa-home me-2"></i>
-                        Back to Home
-                    </Link>
+             
+            <div className="container-fluid bg-light border-bottom py-3">
+            <div className="container mb-5">
+                    <nav aria-label="breadcrumb">
+                        <ol className="breadcrumb mb-0">
+                            <li className="breadcrumb-item">
+                                <Link href="/" className="text-decoration-none">
+                                    <i className="fas fa-home"></i> Home
+                                </Link>
+                            </li>
+                            <li className="breadcrumb-item active">Job List</li>
+                        </ol>
+                    </nav>
                 </div>
 
                 {isEmployee && (
@@ -105,54 +133,20 @@ export default function Index({ jobs, filters, auth }: Props) {
                                     </div>
                                     {isFilterOpen.jobTypes && (
                                         <div className="d-flex flex-column gap-2">
-                                            <div className="form-check">
-                                                <input className="form-check-input" type="checkbox" id="permanent" />
-                                                <label className="form-check-label" htmlFor="permanent">
-                                                    Permanent (Full-time)
-                                                </label>
-                                            </div>
-                                            <div className="form-check">
-                                                <input className="form-check-input" type="checkbox" id="part-time" />
-                                                <label className="form-check-label" htmlFor="part-time">
-                                                    Part-time
-                                                </label>
-                                            </div>
-                                            <div className="form-check">
-                                                <input className="form-check-input" type="checkbox" id="remote" />
-                                                <label className="form-check-label" htmlFor="remote">
-                                                    Remote
-                                                </label>
-                                            </div>
-                                            <div className="form-check">
-                                                <input className="form-check-input" type="checkbox" id="freelance" />
-                                                <label className="form-check-label" htmlFor="freelance">
-                                                    Freelance
-                                                </label>
-                                            </div>
-                                            <div className="form-check">
-                                                <input className="form-check-input" type="checkbox" id="contractual" />
-                                                <label className="form-check-label" htmlFor="contractual">
-                                                    Contractual
-                                                </label>
-                                            </div>
-                                            <div className="form-check">
-                                                <input className="form-check-input" type="checkbox" id="volunteer" />
-                                                <label className="form-check-label" htmlFor="volunteer">
-                                                    Volunteer
-                                                </label>
-                                            </div>
-                                            <div className="form-check">
-                                                <input className="form-check-input" type="checkbox" id="intern-paid" />
-                                                <label className="form-check-label" htmlFor="intern-paid">
-                                                    Intern (Paid)
-                                                </label>
-                                            </div>
-                                            <div className="form-check">
-                                                <input className="form-check-input" type="checkbox" id="intern-unpaid" />
-                                                <label className="form-check-label" htmlFor="intern-unpaid">
-                                                    Intern (Unpaid)
-                                                </label>
-                                            </div>
+                                            {jobTypes.map(type => (
+                                                <div className="form-check" key={type.id}>
+                                                    <input
+                                                        className="form-check-input"
+                                                        type="checkbox"
+                                                        id={type.id}
+                                                        checked={selectedJobTypes.includes(type.id)}
+                                                        onChange={() => handleJobTypeChange(type.id)}
+                                                    />
+                                                    <label className="form-check-label" htmlFor={type.id}>
+                                                        {type.label}
+                                                    </label>
+                                                </div>
+                                            ))}
                                         </div>
                                     )}
                                 </div>
@@ -183,8 +177,8 @@ export default function Index({ jobs, filters, auth }: Props) {
 
                         <div className="d-flex flex-column gap-4">
                             {jobs.data.map((job) => (
-                                <div key={job.id} className="card border-0 rounded-3">
-                                    <div className="card-body">
+                                <div key={job.id} className="card border-0 rounded-3 hover:bg-gray-100">
+                                    <div className="card-body hover:bg-gray-200">
                                         <div className="d-flex justify-content-between align-items-start mb-3">
                                             <div>
                                                 <Link 

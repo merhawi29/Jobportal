@@ -1,22 +1,23 @@
-<?php
-
+<!-- 
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Employee extends Model
 {
     use HasFactory;
 
+    protected $table = 'employees';
     protected $fillable = [
         'user_id',
-        'position',
-        'department',
-        'hire_date',
-        'photo',
-        'country',
         'company_name',
+        'company_website',
+        'company_size',
+        'industry',
+        'company_description',
+        'location',
     ];
 
     protected $casts = [
@@ -27,10 +28,10 @@ class Employee extends Model
         'salary' => 'decimal:2',
     ];
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 }
 
-
+ -->

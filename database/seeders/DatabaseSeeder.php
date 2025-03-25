@@ -8,6 +8,7 @@ use App\Models\JobApplication;
 use App\Models\SavedJob;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Database\Seeders\InterviewInvitationSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -18,7 +19,9 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             UserSeeder::class,
+            EmployerSeeder::class,
             JobSeeder::class,
+            InterviewInvitationSeeder::class,
         ]);
 
         // Create job seekers
@@ -38,8 +41,8 @@ class DatabaseSeeder extends Seeder
             foreach ($jobsToApply as $job) {
                 JobApplication::create([
                     'user_id' => $jobSeeker->id,
-                    'job_id' => $job->id,
-                    'status' => 'pending',
+                    'joblists_id' => $job->id,
+                    'status' => JobApplication::STATUSES['PENDING'],
                     'cover_letter' => "I am excited to apply for the {$job->title} position at {$job->company}. With my relevant experience and skills, I believe I would be a great addition to your team.",
                     'resume' => 'resumes/default-resume.pdf'
                 ]);
@@ -50,7 +53,7 @@ class DatabaseSeeder extends Seeder
             foreach ($jobsToSave as $job) {
                 SavedJob::create([
                     'user_id' => $jobSeeker->id,
-                    'job_id' => $job->id
+                    'joblists_id' => $job->id
                 ]);
             }
         }

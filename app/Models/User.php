@@ -56,15 +56,16 @@ class User extends Authenticatable
     }
 
     const ROLES = [
-        'USER' => 'user',
-        'MODERATOR' => 'moderator',
-        'ADMIN' => 'admin'
+        'admin' => 'Admin',
+        'moderator' => 'Moderator',
+        'employer' => 'Employer',
+        'job_seeker' => 'Job Seeker'
     ];
 
-    const STATUS = [
-        'ACTIVE' => 'active',
-        'BANNED' => 'banned',
-        'SUSPENDED' => 'suspended'
+    const STATUSES = [
+        'active' => 'Active',
+        'banned' => 'Banned',
+        'suspended' => 'Suspended'
     ];
 
     public function hasRole($role)
@@ -74,17 +75,17 @@ class User extends Authenticatable
 
     public function isModerator()
     {
-        return $this->role === self::ROLES['MODERATOR'];
+        return $this->role === self::ROLES['moderator'];
     }
 
     public function isAdmin()
     {
-        return $this->role === self::ROLES['ADMIN'];
+        return $this->role === self::ROLES['admin'];
     }
 
     public function isBanned()
     {
-        return $this->status === self::STATUS['BANNED'] &&
+        return $this->status === self::STATUSES['banned'] &&
                ($this->banned_until === null || $this->banned_until->isFuture());
     }
 
@@ -98,8 +99,18 @@ class User extends Authenticatable
         return $this->hasOne(JobSeekerProfile::class);
     }
 
-    public function employee()
+    public function employer()
     {
-        return $this->hasOne(Employee::class);
+        return $this->hasOne(Employer::class);
+    }
+
+    public function jobAlerts()
+    {
+        return $this->hasMany(JobAlert::class);
+    }
+
+    public function jobApplications()
+    {
+        return $this->hasMany(JobApplication::class);
     }
 }

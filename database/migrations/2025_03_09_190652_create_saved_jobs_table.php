@@ -14,11 +14,11 @@ return new class extends Migration
         Schema::create('saved_jobs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('job_id')->constrained('jobs')->onDelete('cascade');
+            $table->foreignId('joblists_id')->constrained('joblists')->onDelete('cascade');
             $table->timestamps();
 
             // Prevent duplicate saves
-            $table->unique(['user_id', 'job_id']);
+            $table->unique(['user_id', 'joblists_id']);
         });
     }
 

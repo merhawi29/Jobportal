@@ -15,4 +15,16 @@ export interface Job {
         name: string;
         verified: boolean;
     };
-} 
+}
+
+// export interface PageProps<T = {}> {
+//     auth: {
+//         user: {
+//             id: number;
+//             name: string;
+//             email: string;
+//             role: string;
+//         };
+//     };
+//     errors: Record<string, string>;
+// }; 

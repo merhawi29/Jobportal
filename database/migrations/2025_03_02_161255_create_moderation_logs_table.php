@@ -13,7 +13,7 @@ return new class extends Migration
         Schema::create('moderation_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('moderator_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('job_id')->nullable()->constrained('jobs')->onDelete('cascade');
+            $table->foreignId('joblists_id')->nullable()->constrained('joblists')->onDelete('cascade');
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade');
             $table->enum('action', ['approved', 'rejected', 'suspended', 'banned']);
             $table->text('reason')->nullable();

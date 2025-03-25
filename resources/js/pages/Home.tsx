@@ -3,6 +3,13 @@ import { Head, Link } from '@inertiajs/react';
 import Nav from '../components/nav';
 import Footer from '../components/Footer';
 
+interface Props {
+  flash?: {
+    success?: string;
+    error?: string;
+  };
+  error?: string;
+}
 const jobTypes = [
   {
     name: 'Full-time',
@@ -42,10 +49,21 @@ const jobTypes = [
   }
 ];
 
-const Home = () => {
+  const Home = ({flash, error}: Props) => {
   return (
     <>
       <Head title="Home" />
+      {flash?.success && (
+                    <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+                        {flash.success}
+                    </div>
+                )}
+                {(flash?.error || error) && (
+                    <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                        {flash?.error || error}
+                    </div>
+                )}
+
       <Nav />
 
       {/* Job Types Section */}
