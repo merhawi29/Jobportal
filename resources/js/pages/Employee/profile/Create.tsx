@@ -253,13 +253,13 @@ export default function Create() {
                             <div className="flex justify-end space-x-4">
                                 <Button
                                     type="button"
-                                    variant="secondary"
+                                    className="btn btn-outline-secondary"
                                     onClick={() => window.history.back()}
                                     disabled={processing}
                                 >
                                     Cancel
                                 </Button>
-                                <Button type="submit" disabled={processing}>
+                                <Button type="submit" disabled={processing} className="btn btn-outline-success">
                                     {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
                                     Complete Profile
                                 </Button>

@@ -56,10 +56,10 @@ class User extends Authenticatable
     }
 
     const ROLES = [
-        'admin' => 'Admin',
-        'moderator' => 'Moderator',
-        'employer' => 'Employer',
-        'job_seeker' => 'Job Seeker'
+        'admin' => 'admin',
+        'moderator' => 'moderator',
+        'employer' => 'employer',
+        'job_seeker' => 'job_seeker'
     ];
 
     const STATUSES = [
@@ -99,7 +99,7 @@ class User extends Authenticatable
         return $this->hasOne(JobSeekerProfile::class);
     }
 
-    public function employer()
+    public function employerProfile()
     {
         return $this->hasOne(Employer::class);
     }

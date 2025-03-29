@@ -9,6 +9,7 @@ use App\Models\SavedJob;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Database\Seeders\InterviewInvitationSeeder;
+use Database\Seeders\ActivityLogSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -22,6 +23,8 @@ class DatabaseSeeder extends Seeder
             EmployerSeeder::class,
             JobSeeder::class,
             InterviewInvitationSeeder::class,
+            AdminSeeder::class,
+            ActivityLogSeeder::class,
         ]);
 
         // Create job seekers

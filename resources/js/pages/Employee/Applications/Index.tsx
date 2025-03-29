@@ -1,7 +1,24 @@
 import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { JobApplication } from '@/types';
-import { Pagination } from '@/types';
+import FlashMessage from '@/components/FlashMessage';
+
+interface JobApplication {
+    id: number;
+    job: {
+        title: string;
+    };
+    user: {
+        name: string;
+    };
+    status: 'pending' | 'under_review' | 'interview_scheduled' | 'hired' | 'rejected';
+    created_at: string;
+    interview_date?: string;
+}
+
+interface Pagination<T> {
+    data: T[];
+    // Add other pagination fields if needed
+}
 
 interface Props {
     applications: Pagination<JobApplication>;
@@ -47,9 +64,7 @@ export default function Index({ applications }: Props) {
         const classes = {
             pending: 'bg-secondary',
             under_review: 'bg-info',
-            shortlisted: 'bg-warning',
             interview_scheduled: 'bg-primary',
-            interviewed: 'bg-info',
             hired: 'bg-success',
             rejected: 'bg-danger'
         };
@@ -59,6 +74,7 @@ export default function Index({ applications }: Props) {
     return (
         <>
             <Head title="Received Applications" />
+            <FlashMessage />
             
             <div className="container bg-light border-bottom py-3">
             <div className="container mb-5">

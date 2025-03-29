@@ -1,6 +1,7 @@
 import React from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import ModeratorLayout from '@/layouts/ModeratorLayout';
+import toast from 'react-hot-toast';
 
 interface User {
     id: number;
@@ -143,24 +144,62 @@ export default function Index({ users }: Props) {
 
 function handleWarn(userId: number) {
     if (confirm('Are you sure you want to warn this user?')) {
-        // Handle warn action
+        const reason = prompt('Please enter a warning reason:');
+        if (reason) {
+            router.post(`/moderator/users/${userId}/warn`, {
+                reason: reason
+            }, {
+                onSuccess: () => {
+                    toast.success('Warning sent successfully');
+                },
+                onError: () => {
+                    toast.error('Failed to send warning');
+                }
+            });
+        }
     }
 }
 
 function handleBan(userId: number) {
     if (confirm('Are you sure you want to ban this user?')) {
-        // Handle ban action
+        const reason = prompt('Please enter a ban reason:');
+        if (reason) {
+            router.post(`/moderator/users/${userId}/ban`, {
+                reason: reason
+            }, {
+                onSuccess: () => {
+                    toast.success('User banned successfully');
+                },
+                onError: () => {
+                    toast.error('Failed to ban user');
+                }
+            });
+        }
     }
 }
 
 function handleUnban(userId: number) {
     if (confirm('Are you sure you want to unban this user?')) {
-        // Handle unban action
+        router.post(`/moderator/users/${userId}/unban`, {}, {
+            onSuccess: () => {
+                toast.success('User unbanned successfully');
+            },
+            onError: () => {
+                toast.error('Failed to unban user');
+            }
+        });
     }
 }
 
 function handleDelete(userId: number) {
-    if (confirm('Are you sure you want to delete this user?')) {
-        // Handle delete action
+    if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+        router.delete(`/moderator/users/${userId}`, {
+            onSuccess: () => {
+                toast.success('User deleted successfully');
+            },
+            onError: () => {
+                toast.error('Failed to delete user');
+            }
+        });
     }
 }

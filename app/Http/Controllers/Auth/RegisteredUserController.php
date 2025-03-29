@@ -82,7 +82,6 @@ class RegisteredUserController extends Controller
         event(new Registered($user));
 
         Auth::login($user);
-
         // Redirect to profile completion page based on role
         if ($request->role === 'employer') {
             return redirect()->route('employee.profile.create')

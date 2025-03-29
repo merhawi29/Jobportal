@@ -9,6 +9,7 @@ use App\Models\Job;
 use App\Models\JobApplication;
 use App\Notifications\JobApplicationNotification;
 use Illuminate\Support\Facades\DB;
+use App\Notifications\InterviewScheduled;
 
 class JobManagementController extends Controller
 {
@@ -58,12 +59,12 @@ class JobManagementController extends Controller
         }
 
         $validated = $request->validate([
-            'status' => ['required', 'string', 'in:pending,shortlisted,hired,rejected']
+            'status' => ['required', 'string', 'in:pending,under_review,interview_scheduled,hired,rejected']
         ]);
 
-        // Make sure status is passed as a string
-        $application->status = $validated['status'];
-        $application->save();
+        $application->update([
+            'status' => $validated['status']
+        ]);
 
         // Send notification to job seeker
         $application->user->notify(new JobApplicationNotification(
@@ -84,12 +85,12 @@ class JobManagementController extends Controller
 
         $validated = $request->validate([
             'message' => 'required|string|max:500',
-            'status' => 'required|in:shortlisted,hired,rejected'
+            'status' => ['required', 'string', 'in:pending,under_review,interview_scheduled,hired,rejected']
         ]);
 
-        // Fix: Ensure status is properly quoted by using array syntax
-        $application->status = $validated['status'];
-        $application->save();
+        $application->update([
+            'status' => $validated['status']
+        ]);
 
         // Send notification to job seeker
         $application->user->notify(new JobApplicationNotification(
@@ -98,6 +99,40 @@ class JobManagementController extends Controller
             $validated['message']
         ));
 
-        return back()->with('success', 'Notification sent successfully');
+        return redirect()->route('employer.applications.index')
+            ->with('success', 'Notification sent successfully');
+    }
+
+    public function scheduleInterview(Request $request, JobApplication $application)
+    {
+        // Ensure the employer owns the job this application is for
+        if ($application->job->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'scheduled_at' => 'required|date|after:now',
+            'type' => 'required|in:in_person,video,phone',
+            'location' => 'required|string|max:255',
+            'message' => 'nullable|string|max:1000'
+        ]);
+
+        // Create interview invitation
+        $interview = $application->interviews()->create([
+            'scheduled_at' => $validated['scheduled_at'],
+            'type' => $validated['type'],
+            'location' => $validated['location'],
+            'notes' => $validated['message'],
+            'status' => 'pending'
+        ]);
+
+        // Update application status
+        $application->update(['status' => 'interview_scheduled']);
+
+        // Notify the applicant
+        $application->user->notify(new InterviewScheduled($interview));
+
+        return redirect()->route('employer.applications.index')
+            ->with('success', 'Interview scheduled successfully');
     }
 } 

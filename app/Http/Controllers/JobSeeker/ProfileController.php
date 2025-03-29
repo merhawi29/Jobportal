@@ -163,7 +163,7 @@ class ProfileController extends Controller
                 Storage::delete($profile->photo);
             }
             $photoPath = $request->file('photo')->store('profile-photos', 'public');
-            $validated['photo'] = Storage::url($photoPath);
+            $validated['profile_image'] = Storage::url($photoPath);
         }
 
         if ($request->hasFile('resume')) {
@@ -180,10 +180,30 @@ class ProfileController extends Controller
             'email' => $validated['email'],
         ]);
 
+        // Prepare profile data with only the fields that exist in the table
+        $profileData = [
+            'location' => $validated['location'],
+            'education' => $validated['education'],
+            'experience' => $validated['experience'],
+            'skills' => $validated['skills'],
+            'about' => $validated['about'],
+            'linkedin_url' => $validated['linkedin_url'] ?? null,
+            'github_url' => $validated['github_url'] ?? null,
+            'is_public' => $validated['privacy_settings']['profile_visibility'] === 'public',
+        ];
+
+        if (isset($validated['profile_image'])) {
+            $profileData['profile_image'] = $validated['profile_image'];
+        }
+
+        if (isset($validated['resume'])) {
+            $profileData['resume'] = $validated['resume'];
+        }
+
         if ($profile) {
-            $profile->update($validated);
+            $profile->update($profileData);
         } else {
-            $user->jobSeekerProfile()->create($validated);
+            $user->jobSeekerProfile()->create($profileData);
         }
 
         return redirect()->route('jobseeker.profile.show')

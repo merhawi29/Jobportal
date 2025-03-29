@@ -12,6 +12,10 @@ use App\Http\Controllers\Employer\EmployeeProfileController;
 use App\Http\Controllers\Employer\JobManagementController;
 use App\Http\Controllers\InterviewInvitationController;
 use App\Http\Controllers\JobSeeker\JobSeekerDashboardController;
+use App\Http\Controllers\ContentController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\VerificationController;
+use App\Http\Controllers\Admin\UserController;
 
 Route::get('/', function () {
     return Inertia::render('Home');
@@ -21,9 +25,6 @@ Route::get('/', function () {
 Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/{job}', [JobController::class, 'show'])->name('jobs.show');
 
-// Route::get('/haha', function () {
-//     return Inertia::render('Employee/PostJob');
-// })->name('haha');
 
 // Protected job routes
 Route::middleware(['auth'])->group(function () {
@@ -56,11 +57,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 
-    // Route::get('/profile', [JobSeekerProfileController::class, 'edit'])->name('profile.edit');
-    // Route::put('/profile', [JobSeekerProfileController::class, 'update'])->name('profile.update');
-    // Route::put('/profile/privacy', [JobSeekerProfileController::class, 'updatePrivacy'])->name('profile.privacy.update');
-
-
+  
     // Job Seeker routes
     Route::prefix('job-seeker')->group(function () {
         Route::get('/applications', [JobApplicationController::class, 'index'])->name('applications.index');
@@ -90,17 +87,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
 
-        // Route::prefix('employee')->name('employee.')->group(function () {
-        //     Route::get('/profile', [EmployeeProfileController::class, 'edit'])->name('profile.edit');
-        //     Route::put('/profile', [EmployeeProfileController::class, 'update'])->name('profile.update');
-        //     Route::post('/profile/photo', [EmployeeProfileController::class, 'updatePhoto'])->name('profile.photo');
-        //     Route::get('/profile/show/{id?}', [EmployeeProfileController::class, 'show'])->name('profile.show');
-        //     Route::get('/profile/create', [EmployeeProfileController::class, 'create'])->name('profile.create');
-        //     Route::post('/profile', [EmployeeProfileController::class, 'store'])->name('profile.store');
-        // });
-
-        // Employer routes
-       
 
 
 
@@ -114,6 +100,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/applications/{application}/status', [JobManagementController::class, 'updateStatus'])->name('applications.update-status');
         Route::post('/applications/{application}/notify', [JobManagementController::class, 'sendNotification'])
             ->name('applications.notify');
+        Route::post('/applications/{application}/schedule-interview', [JobManagementController::class, 'scheduleInterview'])
+            ->name('applications.schedule-interview');
     });
 // Route::prefix('employee')->name('employee.')->group(function () {
 // });
@@ -136,13 +124,110 @@ Route::middleware(['auth'])->group(function () {
     // Route::get('/dashboard', [JobSeekerDashboardController::class, 'index'])->name('jobseeker.dashboard');
 });
 
-// Profile routes (no profile completion middleware needed)
-// Route::prefix('jobseeker')->name('jobseeker.')->middleware(['auth'])->group(function () {
-//     Route::get('/profile/create', [App\Http\Controllers\JobSeeker\ProfileController::class, 'create'])->name('jobseeker.profile.create');
-//     Route::post('/profile', [App\Http\Controllers\JobSeeker\ProfileController::class, 'store'])->name('jobseeker.profile.store');
-//     Route::get('/profile/edit', [App\Http\Controllers\JobSeeker\ProfileController::class, 'edit'])->name('jobseeker.profile.edit');
-//     Route::put('/profile', [App\Http\Controllers\JobSeeker\ProfileController::class, 'update'])->name('jobseeker.profile.update');
-// });
+// Admin routes
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+    
+    // Jobs Management
+    Route::get('/api/jobs', [App\Http\Controllers\Admin\JobController::class, 'index']);
+    Route::post('/jobs/{job}/approve', [App\Http\Controllers\Admin\JobController::class, 'approve']);
+    Route::post('/jobs/{job}/reject', [App\Http\Controllers\Admin\JobController::class, 'reject']);
+    Route::get('/jobs/{job}/edit', [App\Http\Controllers\Admin\JobController::class, 'edit']);
+    Route::put('/jobs/{job}', [App\Http\Controllers\Admin\JobController::class, 'update']);
+    Route::delete('/jobs/{job}', [App\Http\Controllers\Admin\JobController::class, 'destroy']);
+    
+    // User Management
+    Route::prefix('users')->name('users.')->group(function () {
+        // Job Seeker Management
+        Route::prefix('job-seekers')->name('job-seekers.')->group(function () {
+            Route::get('/', function () {
+                return Inertia::render('Admin/Users/JobSeekers/Index');
+            })->name('index');
+            Route::get('/{user}/edit', [UserController::class, 'editJobSeeker'])->name('edit');
+            Route::put('/{user}', [UserController::class, 'updateJobSeeker'])->name('update');
+            Route::post('/{user}/suspend', [UserController::class, 'suspendJobSeeker'])->name('suspend');
+            Route::post('/{user}/activate', [UserController::class, 'activateJobSeeker'])->name('activate');
+            Route::delete('/{user}', [UserController::class, 'deleteJobSeeker'])->name('delete');
+        });
+
+        // Employer Management
+        Route::prefix('employers')->name('employers.')->group(function () {
+            Route::get('/', function () {
+                return Inertia::render('Admin/Users/Employers/Index');
+            })->name('index');
+            Route::get('/{user}/edit', [App\Http\Controllers\Admin\UserController::class, 'edit'])->name('edit');
+            Route::put('/{user}', [App\Http\Controllers\Admin\UserController::class, 'update'])->name('update');
+            Route::post('/{user}/suspend', [App\Http\Controllers\Admin\UserController::class, 'suspendEmployer'])->name('suspend');
+            Route::post('/{user}/activate', [App\Http\Controllers\Admin\UserController::class, 'activateEmployer'])->name('activate');
+            Route::delete('/{user}', [App\Http\Controllers\Admin\UserController::class, 'deleteEmployer'])->name('delete');
+        });
+    });
+
+    // Job Seeker API Routes
+    Route::prefix('api/users/job-seekers')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\UserController::class, 'jobSeekers']);
+        Route::post('/{user}/suspend', [App\Http\Controllers\Admin\UserController::class, 'suspendJobSeeker']);
+        Route::post('/{user}/activate', [App\Http\Controllers\Admin\UserController::class, 'activateJobSeeker']);
+        Route::delete('/{user}', [App\Http\Controllers\Admin\UserController::class, 'deleteJobSeeker']);
+    });
+
+    // Employer API Routes
+    Route::prefix('api/users/employers')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\UserController::class, 'employers']);
+        Route::post('/{user}/suspend', [App\Http\Controllers\Admin\UserController::class, 'suspendEmployer']);
+        Route::post('/{user}/activate', [App\Http\Controllers\Admin\UserController::class, 'activateEmployer']);
+        Route::delete('/{user}', [App\Http\Controllers\Admin\UserController::class, 'deleteEmployer']);
+    });
+
+    // Job Management
+    Route::prefix('jobs')->name('jobs.')->group(function () {
+        Route::get('/', function () {
+            return Inertia::render('Admin/Jobs/Index');
+        })->name('index');
+        Route::get('/{job}/edit', [App\Http\Controllers\Admin\JobController::class, 'edit'])->name('edit');
+        Route::put('/{job}', [App\Http\Controllers\Admin\JobController::class, 'update'])->name('update');
+        Route::post('/{job}/approve', [App\Http\Controllers\Admin\JobController::class, 'approve'])->name('approve');
+        Route::post('/{job}/reject', [App\Http\Controllers\Admin\JobController::class, 'reject'])->name('reject');
+    });
+
+    // Job API Routes
+    Route::prefix('api/jobs')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\JobController::class, 'index']);
+    });
+
+    // Employer Verification
+    Route::prefix('verifications')->name('verifications.')->group(function () {
+        Route::get('/', function () {
+            return Inertia::render('Admin/Verifications/Index');
+        })->name('index');
+        Route::post('/{employer}/verify', [App\Http\Controllers\Admin\VerificationController::class, 'verify'])->name('verify');
+        Route::post('/{employer}/reject', [App\Http\Controllers\Admin\VerificationController::class, 'reject'])->name('reject');
+    });
+
+    // Content Management
+    Route::get('/content', [App\Http\Controllers\Admin\ContentController::class, 'index'])->name('content.index');
+    Route::get('/content/{type}/create', [App\Http\Controllers\Admin\ContentController::class, 'create'])
+        ->where('type', 'career_resource|blog_post|faq')
+        ->name('content.create');
+    Route::post('/content', [App\Http\Controllers\Admin\ContentController::class, 'store'])->name('content.store');
+    Route::get('/content/{content}/edit', [App\Http\Controllers\Admin\ContentController::class, 'edit'])->name('content.edit');
+    Route::put('/content/{content}', [App\Http\Controllers\Admin\ContentController::class, 'update'])->name('content.update');
+    Route::patch('/content/{content}/status', [App\Http\Controllers\Admin\ContentController::class, 'updateStatus'])->name('content.update-status');
+    Route::delete('/content/{content}', [App\Http\Controllers\Admin\ContentController::class, 'destroy'])->name('content.destroy');
+
+    // Verification routes
+    Route::get('/verifications', [VerificationController::class, 'index'])->name('verifications.index');
+    Route::post('/verifications/{verification}/verify', [VerificationController::class, 'verify'])->name('verifications.verify');
+    Route::post('/verifications/{verification}/reject', [VerificationController::class, 'reject'])->name('verifications.reject');
+    Route::get('/verifications/{verification}/document', [VerificationController::class, 'viewDocument'])->name('verifications.document');
+
+    // Content API Routes
+    Route::prefix('api/content')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\ContentController::class, 'index']);
+    });
+
+    // ... rest of the admin routes ...
+});
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

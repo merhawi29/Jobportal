@@ -11,17 +11,21 @@ return new class extends Migration
         Schema::create('job_seeker_profiles', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('title')->nullable();
+            $table->text('summary')->nullable();
             $table->string('location')->nullable();
-            $table->text('education')->nullable();
-            $table->text('experience')->nullable();
-            $table->text('skills')->nullable();
-            $table->text('certifications')->nullable();
-            $table->text('about')->nullable();
+            $table->string('phone')->nullable();
+            $table->string('profile_picture')->nullable();
+            $table->json('skills')->nullable();
+            $table->json('experience')->nullable();
+            $table->json('education')->nullable();
+            $table->json('certifications')->nullable();
+            $table->json('languages')->nullable();
             $table->string('linkedin_url')->nullable();
             $table->string('github_url')->nullable();
-            $table->string('profile_image')->nullable();
             $table->string('resume')->nullable();
-            $table->boolean('is_public')->default(false);
+            $table->json('privacy_settings')->nullable();
+            $table->boolean('is_public')->default(true);
             $table->timestamps();
         });
     }
@@ -30,4 +34,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('job_seeker_profiles');
     }
-};
+}; 

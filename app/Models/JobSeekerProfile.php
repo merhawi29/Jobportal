@@ -12,26 +12,28 @@ class JobSeekerProfile extends Model
 
     protected $fillable = [
         'user_id',
-        'name',
-        'email',
-        'phone',
-        'photo',
+        'title',
+        'summary',
         'location',
-        'about',
-        'education',
-        'experience',
+        'phone',
+        'profile_picture',
         'skills',
-        'linkedin_url',
-        'github_url',
-        'resume',
-        'privacy_settings'
+        'experience',
+        'education',
+        'certifications',
+        'languages',
+        'privacy_settings',
+        'is_public',
     ];
 
     protected $casts = [
-        'education' => 'array',
-        'experience' => 'array',
         'skills' => 'array',
-        'privacy_settings' => 'array'
+        'experience' => 'array',
+        'education' => 'array',
+        'certifications' => 'array',
+        'languages' => 'array',
+        'privacy_settings' => 'array',
+        'is_public' => 'boolean',
     ];
 
     public function user(): BelongsTo

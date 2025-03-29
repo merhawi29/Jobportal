@@ -1,6 +1,6 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
-import { Job } from '@/types';
+import type { Job } from '../../../types/index';
 import Pagination from '@/components/Pagination';
 
 interface Application {

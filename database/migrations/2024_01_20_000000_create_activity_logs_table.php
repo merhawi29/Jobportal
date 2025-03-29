@@ -13,16 +13,13 @@ return new class extends Migration
     {
         Schema::create('activity_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('moderator_id')->constrained('users')->onDelete('cascade');
-            $table->string('action_type');  // e.g., 'job_approved', 'user_banned', 'report_resolved'
-            $table->string('target_type');  // For polymorphic relation (e.g., 'App\Models\Job')
-            $table->unsignedBigInteger('target_id');  // For polymorphic relation
-            $table->string('reason')->nullable();
-            $table->json('details')->nullable();  // Additional context about the action
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
+            $table->string('log_name')->nullable();
+            $table->text('description');
+            $table->string('event')->nullable();
+            $table->nullableMorphs('subject');
+            $table->json('properties')->nullable();
             $table->timestamps();
-
-            // Index for polymorphic relation
-            $table->index(['target_type', 'target_id']);
         });
     }
 

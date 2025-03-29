@@ -10,8 +10,8 @@ import  Textarea  from '@/components/TextArea';
 
 interface JobSeekerProfileForm {
     [key: string]: any;
-            name: string;
-            email: string;
+    name: string;
+    email: string;
     phone: string;
     photo: File | null;
     location: string;
@@ -22,6 +22,13 @@ interface JobSeekerProfileForm {
     linkedin_url: string;
     github_url: string;
     resume: File | null;
+    privacy_settings: {
+        profile_visibility: 'public' | 'private' | 'registered';
+        show_email: boolean;
+        show_phone: boolean;
+        show_education: boolean;
+        show_experience: boolean;
+    };
 }
 
 export default function Create() {
@@ -37,7 +44,14 @@ export default function Create() {
         about: '',
         linkedin_url: '',
         github_url: '',
-        resume: null
+        resume: null,
+        privacy_settings: {
+            profile_visibility: 'public',
+            show_email: false,
+            show_phone: false,
+            show_education: true,
+            show_experience: true
+        }
     });
 
     const handleSubmit = (e: React.FormEvent) => {

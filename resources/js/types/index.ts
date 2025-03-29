@@ -33,6 +33,54 @@ export interface User {
     name: string;
     email: string;
     role: string;
+    status: string;
+    phone?: string;
+    created_at: string;
+    updated_at: string;
+    employer_profile?: {
+        company_name: string;
+        company_website: string | null;
+        company_size: string | null;
+        industry: string | null;
+        company_description: string | null;
+        location: string | null;
+        position: string | null;
+        department: string | null;
+        hire_date: string | null;
+        photo: string | null;
+        country: string | null;
+        status: string;
+    };
+    job_seeker_profile?: {
+        title: string | null;
+        summary: string | null;
+        location: string | null;
+        phone: string | null;
+        profile_picture: string | null;
+        skills: string[] | null;
+        experience: any[] | null;
+        education: any[] | null;
+        certifications: any[] | null;
+        languages: any[] | null;
+        privacy_settings: any | null;
+        is_public: boolean;
+    };
+}
+
+export interface EmployerVerification {
+    id: number;
+    user_id: number;
+    company_name: string;
+    company_address: string;
+    business_registration_number?: string;
+    tax_id?: string;
+    document_path: string;
+    status: 'pending' | 'approved' | 'rejected';
+    rejection_reason?: string;
+    verified_at?: string;
+    created_at: string;
+    updated_at: string;
+    user: User;
 }
 
 export interface Activity {
@@ -69,9 +117,11 @@ export interface Job {
     requirements: string;
     benefits: string;
     deadline: string;
+    status: 'pending' | 'approved' | 'rejected';
     created_at: string;
     updated_at: string;
     user: {
+        id: number;
         name: string;
         verified: boolean;
     };
