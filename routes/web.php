@@ -12,10 +12,11 @@ use App\Http\Controllers\Employer\EmployeeProfileController;
 use App\Http\Controllers\Employer\JobManagementController;
 use App\Http\Controllers\InterviewInvitationController;
 use App\Http\Controllers\JobSeeker\JobSeekerDashboardController;
-use App\Http\Controllers\ContentController;
+use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\VerificationController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\ReportController;
 
 Route::get('/', function () {
     return Inertia::render('Home');
@@ -57,7 +58,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 
-  
+
     // Job Seeker routes
     Route::prefix('job-seeker')->group(function () {
         Route::get('/applications', [JobApplicationController::class, 'index'])->name('applications.index');
@@ -86,7 +87,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/profile', [JobSeekerProfileController::class, 'store'])->name('profile.store');
     });
 
-
+       
 
 
 
@@ -140,9 +141,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::prefix('users')->name('users.')->group(function () {
         // Job Seeker Management
         Route::prefix('job-seekers')->name('job-seekers.')->group(function () {
-            Route::get('/', function () {
-                return Inertia::render('Admin/Users/JobSeekers/Index');
-            })->name('index');
+            Route::get('/', [UserController::class, 'jobSeekersIndex'])->name('index');
             Route::get('/{user}/edit', [UserController::class, 'editJobSeeker'])->name('edit');
             Route::put('/{user}', [UserController::class, 'updateJobSeeker'])->name('update');
             Route::post('/{user}/suspend', [UserController::class, 'suspendJobSeeker'])->name('suspend');
@@ -227,6 +226,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     });
 
     // ... rest of the admin routes ...
+    Route::get('/reports/download', [ReportController::class, 'downloadReport'])->name('admin.reports.download');
 });
 
 require __DIR__.'/settings.php';

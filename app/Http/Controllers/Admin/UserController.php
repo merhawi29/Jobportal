@@ -10,6 +10,16 @@ use Inertia\Inertia;
 
 class UserController extends Controller
 {
+    public function jobSeekersIndex()
+    {
+        try {
+            return Inertia::render('Admin/Users/JobSeekers/Index');
+        } catch (\Exception $e) {
+            Log::error('Error loading job seekers page: ' . $e->getMessage());
+            return back()->with('error', 'Failed to load job seekers page');
+        }
+    }
+
     public function jobSeekers()
     {
         try {
@@ -186,6 +196,7 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         try {
+            // Validate user data
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email,' . $user->id,
@@ -193,27 +204,42 @@ class UserController extends Controller
                 'status' => 'required|in:active,suspended',
             ]);
 
+            // Update user data
             $user->update($validated);
 
-            if ($user->role === 'employer') {
+            // If user is an employer, update employer profile
+            if ($user->role === User::ROLES['employer']) {
                 $employerData = $request->validate([
                     'company_name' => 'required|string|max:255',
                     'company_website' => 'nullable|url',
                     'industry' => 'required|string|max:255',
                     'company_size' => 'required|string',
                     'company_description' => 'required|string',
+                    'location' => 'nullable|string|max:255',
+                    'position' => 'nullable|string|max:255',
+                    'department' => 'nullable|string|max:255',
+                    'country' => 'nullable|string|max:255',
+                    'status' => 'nullable|string|in:pending,verified,rejected'
                 ]);
 
+                // Update or create employer profile
                 $user->employerProfile()->updateOrCreate(
                     ['user_id' => $user->id],
                     $employerData
                 );
             }
 
-            return response()->json(['message' => 'User updated successfully']);
+            return response()->json([
+                'message' => 'User updated successfully',
+                'user' => $user->load('employerProfile')
+            ]);
         } catch (\Exception $e) {
-            Log::error('Error updating user: ' . $e->getMessage());
-            return response()->json(['error' => 'Failed to update user'], 500);
+            Log::error('Error updating user: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+                'request_data' => $request->all(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['error' => 'Failed to update user: ' . $e->getMessage()], 500);
         }
     }
 
@@ -243,7 +269,7 @@ class UserController extends Controller
 
         $user->update($validated);
 
-        return redirect()->route('admin.job-seekers.index')
+        return redirect()->route('admin.users.job-seekers.index')
             ->with('success', 'Job seeker updated successfully');
     }
 } 

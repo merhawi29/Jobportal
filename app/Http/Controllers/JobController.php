@@ -3,15 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\Job;
+use App\Services\JobAlertService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class JobController extends Controller
 {
-    public function __construct()
+    protected $jobAlertService;
+
+    public function __construct(JobAlertService $jobAlertService)
     {
         // Only apply auth middleware to specific methods
         $this->middleware('auth')->only(['create', 'store', 'edit', 'update', 'destroy']);
+        $this->jobAlertService = $jobAlertService;
     }
 
     public function create()
@@ -34,6 +38,9 @@ class JobController extends Controller
                 'deadline' => 'required|date|after:today',
             ]);
 
+            // Parse salary range into min and max
+            list($salary_min, $salary_max) = $this->parseSalaryRange($validated['salary_range']);
+
             $job = Job::create([
                 'user_id' => auth()->id(),
                 'title' => $validated['title'],
@@ -41,12 +48,17 @@ class JobController extends Controller
                 'location' => $validated['location'],
                 'type' => $validated['type'],
                 'salary_range' => $validated['salary_range'],
+                'salary_min' => $salary_min,
+                'salary_max' => $salary_max,
                 'description' => $validated['description'],
                 'requirements' => $validated['requirements'],
                 'benefits' => $validated['benefits'],
                 'deadline' => $validated['deadline'],
                 'status' => 'pending', // Jobs need moderator approval
             ]);
+
+            // Job alerts will be processed after the job is approved by a moderator
+            // See the approve method in the moderator's JobController
 
             return redirect()->route('jobs.show', $job->id)
                 ->with('success', 'Job posted successfully! It will be reviewed by our moderators.');
@@ -180,5 +192,31 @@ class JobController extends Controller
                 'error' => 'Failed to delete job posting. ' . $e->getMessage()
             ]);
         }
+    }
+
+    /**
+     * Parse salary range string into min and max values
+     * 
+     * @param string $salaryRange Format: "$min - $max" or "$amount"
+     * @return array [$min, $max]
+     */
+    protected function parseSalaryRange(string $salaryRange): array
+    {
+        // Remove currency symbols and whitespace
+        $clean = preg_replace('/[^\d\-]/', '', $salaryRange);
+        
+        // Split on hyphen if range
+        $parts = explode('-', $clean);
+        
+        if (count($parts) === 2) {
+            return [
+                (float) trim($parts[0]),
+                (float) trim($parts[1])
+            ];
+        }
+        
+        // Single value - use as both min and max
+        $value = (float) $clean;
+        return [$value, $value];
     }
 }

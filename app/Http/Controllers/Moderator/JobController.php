@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Moderator;
 
 use App\Http\Controllers\Controller;
 use App\Models\Job;
+use App\Services\JobAlertService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Spatie\Activitylog\LogOptions;
@@ -12,6 +13,13 @@ use Illuminate\Support\Facades\Gate;
 
 class JobsController extends Controller
 {
+    protected $jobAlertService;
+
+    public function __construct(JobAlertService $jobAlertService)
+    {
+        $this->jobAlertService = $jobAlertService;
+    }
+
     public function index(Request $request)
     {
         $query = Job::with('user');
@@ -97,18 +105,22 @@ class JobsController extends Controller
 
     public function approve(Job $job)
     {
-        $job = job::findOrfail($id);
-        $job->status = 'approbed';
-        $job->save();
-                //$job->update(['moderation_status' => 'approved']);
+        // Update job status
+        $job->update([
+            'status' => 'active',
+            'moderation_status' => 'approved'
+        ]);
 
-        // // Log the action
-        // activity()
-        //     ->performedOn($job)
-        //     ->causedBy(auth()->user())
-        //     ->log('job_approved');
+        // Process job alerts
+        $this->jobAlertService->processNewJob($job);
 
-        return back()->with('success', 'Job has been approved.');
+        // Log the action
+        activity()
+            ->performedOn($job)
+            ->causedBy(auth()->user())
+            ->log('job_approved');
+
+        return back()->with('success', 'Job has been approved and notifications have been sent to matching job seekers.');
     }
 
     public function reject(Job $job, Request $request)

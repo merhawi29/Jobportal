@@ -144,4 +144,4 @@ export default function AdminDashboard({ stats, error }: Props) {
             </div>
         </AdminLayout>
     );
-} 
+}
