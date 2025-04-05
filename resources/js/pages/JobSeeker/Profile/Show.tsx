@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,7 +8,7 @@ interface ProfileData {
     name: string;
     email: string;
     phone: string | null;
-    photo: string | null;
+    profile_picture: string | null;
     location: string;
     education: Array<{ institution: string; degree: string }>;
     experience: Array<{ company: string; position: string }>;
@@ -37,6 +37,34 @@ interface Props {
 }
 
 export default function Show({ profile, isOwnProfile, flash, error }: Props) {
+    const [imageError, setImageError] = useState(false);
+    const [imageSrc, setImageSrc] = useState(profile.profile_picture || '/profile-photos/default-avatar.png');
+    
+    useEffect(() => {
+        if (!profile.profile_picture) {
+            setImageSrc('/profile-photos/default-avatar.png');
+            return;
+        }
+
+        const img = new Image();
+        img.src = profile.profile_picture;
+        
+        img.onload = () => {
+            setImageError(false);
+            setImageSrc(profile.profile_picture || '/profile-photos/default-avatar.png');
+        };
+        
+        img.onerror = () => {
+            setImageError(true);
+            setImageSrc('/profile-photos/default-avatar.png');
+        };
+        
+        return () => {
+            img.onload = null;
+            img.onerror = null;
+        };
+    }, [profile.profile_picture]);
+    
     const PrivacyIndicator = ({ isVisible }: { isVisible: boolean }) => (
         <span className="inline-flex items-center text-sm text-gray-500 ml-2">
             {isVisible ? (
@@ -108,14 +136,9 @@ export default function Show({ profile, isOwnProfile, flash, error }: Props) {
                                     <CardContent className="space-y-4">
                                         <div className="mb-4">
                                             <img
-                                                src={profile.photo || '/default-avatar.png'}
+                                                src={imageSrc}
                                                 alt={`${profile.name}'s avatar`}
                                                 className="w-32 h-32 rounded-full object-cover border-4 border-green-100 mx-auto"
-                                                onError={(e) => {
-                                                    const target = e.target as HTMLImageElement;
-                                                    target.onerror = null;
-                                                    target.src = '/default-avatar.png';
-                                                }}
                                             />
                                         </div>
                                         <div>

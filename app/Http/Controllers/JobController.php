@@ -95,7 +95,6 @@ class JobController extends Controller
     public function index(Request $request)
     {
         $query = Job::with('user')->approved()->active();
-        // $query = Job::with('user');
 
         // Search filter
         if ($request->has('search')) {
@@ -103,33 +102,30 @@ class JobController extends Controller
             $query->where(function($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
                   ->orWhere('company', 'like', "%{$search}%")
-                  ->orWhere('location', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+                  ->orWhere('location', 'like', "%{$search}%");
+            });
+        }
+
+        // Job Type filter
+        if ($request->has('type') && !empty($request->type)) {
+            $types = explode(',', $request->type);
+            $query->where(function($q) use ($types) {
+                foreach ($types as $type) {
+                    $q->orWhere('type', 'like', "%{$type}%");
+                }
             });
         }
 
         // Sector filter
-        if ($request->has('sector') && $request->sector) {
-            $query->bySector($request->sector);
+        if ($request->has('sector') && !empty($request->sector)) {
+            $query->where('sector', $request->sector);
         }
 
-        // Job type filter
-        if ($request->has('type')) {
-            $types = is_array($request->type) ? $request->type : [$request->type];
-            $query->whereIn('type', $types);
-        }
-
-        // Category filter
-        if ($request->has('category') && $request->category) {
-            $query->where('category', $request->category);
-        }
-
-        $jobs = $query->orderBy('created_at', 'desc')->paginate(10);
+        $jobs = $query->latest()->paginate(10)->withQueryString();
 
         return Inertia::render('Jobs/Index', [
             'jobs' => $jobs,
-            'filters' => $request->only(['search', 'sector', 'type', 'category']),
-            'jobTypes' => Job::JOB_TYPES
+            'filters' => $request->only(['search', 'type', 'sector'])
         ]);
     }
 

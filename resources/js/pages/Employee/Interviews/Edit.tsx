@@ -26,7 +26,7 @@ interface Props {
 }
 
 export default function Edit({ interview }: Props) {
-    const { data, setData, patch, processing, errors } = useForm({
+    const { data, setData, put, processing, errors } = useForm({
         scheduled_at: interview.scheduled_at.slice(0, 16), // Format for datetime-local input
         location: interview.location,
         type: interview.type,
@@ -35,7 +35,7 @@ export default function Edit({ interview }: Props) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        patch(route('interviews.update', interview.id));
+        put(route('interviews.update', interview.id));
     };
 
     return (

@@ -1,33 +1,48 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Head, router, usePage } from '@inertiajs/react';
-import { PageProps as InertiaPageProps } from '@inertiajs/core';
+import { Head, useForm, router } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
+import { Link } from '@inertiajs/react';
+import { FormDataConvertible } from '@inertiajs/core';
 
-import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import InputError from '@/components/input-error';
+import Textarea from '@/components/TextArea';
 
-interface EmployeeData {
-    id: number;
+interface Props {
+    employee: {
+        id: number;
+        name: string;
+        email: string;
+        phone: string;
+        photo: string | null;
+        company_name: string;
+        company_website: string;
+        company_size: string;
+        industry: string;
+        company_description: string;
+        location: string;
+    };
+    flash?: {
+        success?: string;
+        error?: string;
+    };
+    error?: string;
+}
+
+interface EmployerProfileForm {
+    [key: string]: FormDataConvertible;
     name: string;
     email: string;
     phone: string;
-    photo: string | null;
+    photo: File | null;
     company_name: string;
     company_website: string;
     company_size: string;
     industry: string;
     company_description: string;
     location: string;
-}
-
-interface PageProps extends InertiaPageProps {
-    flash?: {
-        success?: string;
-        error?: string;
-    };
 }
 
 const companySizes = [
@@ -52,324 +67,261 @@ const industries = [
     'Other'
 ];
 
-export default function Edit() {
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [submitting, setSubmitting] = useState(false);
-    const [formData, setFormData] = useState<EmployeeData>({
-        id: 0,
-        name: '',
-        email: '',
-        phone: '',
+export default function Edit({ employee, flash, error }: Props) {
+    const [imageError, setImageError] = useState(false);
+    const [imageSrc, setImageSrc] = useState(employee.photo || '/profile-photos/default-avatar.png');
+    
+    useEffect(() => {
+        if (!employee.photo) {
+            setImageSrc('/profile-photos/default-avatar.png');
+            return;
+        }
+
+        const img = new Image();
+        img.src = employee.photo;
+        
+        img.onload = () => {
+            setImageError(false);
+            setImageSrc(employee.photo || '/profile-photos/default-avatar.png');
+        };
+        
+        img.onerror = () => {
+            setImageError(true);
+            setImageSrc('/profile-photos/default-avatar.png');
+        };
+        
+        return () => {
+            img.onload = null;
+            img.onerror = null;
+        };
+    }, [employee.photo]);
+
+    const { data, setData, post, processing, errors, progress } = useForm<EmployerProfileForm>({
+        name: employee.name,
+        email: employee.email,
+        phone: employee.phone,
         photo: null,
-        company_name: '',
-        company_website: '',
-        company_size: '',
-        industry: '',
-        company_description: '',
-        location: ''
+        company_name: employee.company_name,
+        company_website: employee.company_website || '',
+        company_size: employee.company_size,
+        industry: employee.industry,
+        company_description: employee.company_description,
+        location: employee.location,
     });
 
-    const { flash = {} } = usePage<PageProps>().props;
-
-    useEffect(() => {
-        fetchEmployeeProfile();
-    }, []);
-
-    const fetchEmployeeProfile = async () => {
-        try {
-            const response = await axios.get('/employee/profile');
-            setFormData(response.data);
-        } catch (err) {
-            setError('Failed to load profile');
-        } finally {
-            setLoading(false);
+    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files?.[0]) {
+            const file = e.target.files[0];
+            setData('photo', file);
+            setImageSrc(URL.createObjectURL(file));
         }
     };
 
-    const handleInputChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-    ) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
-
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        setSubmitting(true);
-        setError(null);
-
-        const formDataToSend = new FormData();
-        formDataToSend.append('_method', 'PUT');
-        
-        console.log('Sending data:', Object.fromEntries(formDataToSend.entries()));
-        
-        Object.entries(formData).forEach(([key, value]) => {
-            if (value !== null && value !== undefined) {
-                formDataToSend.append(key, value.toString());
-            }
-        });
-
-        try {
-            await router.post(route('employee.profile.update'), formDataToSend, {
-                forceFormData: true,
-                onSuccess: () => {
-                    router.visit(route('employee.profile.show'));
-                },
-                onError: (errors: any) => {
-                    console.error('Update error:', errors);
-                    if (typeof errors === 'object') {
-                        const errorMessage = Object.values(errors).flat().join('\n');
-                        setError(errorMessage);
-                    } else {
-                        setError(errors.toString());
-                    }
-                    setSubmitting(false);
-                }
-            });
-        } catch (error: any) {
-            console.error('Unexpected error:', error);
-            setError(error?.message || 'An unexpected error occurred');
-            setSubmitting(false);
-        }
+        console.log(data);
+        router.put(route('employee.profile.update'), data);
     };
-
-    const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!e.target.files?.length) return;
-
-        const formData = new FormData();
-        formData.append('photo', e.target.files[0]);
-
-        try {
-            const response = await axios.post(route('employee.profile.photo'), formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
-            setFormData(prev => ({ ...prev, photo: response.data.photo }));
-        } catch (err) {
-            setError('Failed to upload photo');
-        }
-    };
-
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <LoaderCircle className="h-8 w-8 animate-spin" />
-            </div>
-        );
-    }
 
     return (
-        <div className="py-12">
-            <Head title="Edit Company Profile" />
+        <div className="container mx-auto p-4">
+            <Link href={route('employee.profile.show')} className="btn btn-outline-secondary">
+                <i className="fas fa-home me-2"></i>
+                Back to Profile
+            </Link>
+            <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6">
+                <h1 className="text-2xl font-semibold mb-6">Edit Company Profile</h1>
 
-            <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 {flash?.success && (
-                    <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+                    <div className="alert alert-success alert-dismissible fade show" role="alert">
                         {flash.success}
+                        <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 )}
                 {(flash?.error || error) && (
-                    <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-                        {flash.error || error}
+                    <div className="alert alert-danger alert-dismissible fade show" role="alert">
+                        {flash?.error || error}
+                        <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 )}
 
-                <div className="mb-6">
-                    <Button
-                        onClick={() => router.visit(route('employee.profile.show'))}
-                        variant="outline"
-                    >
-                        Back to Profile
-                    </Button>
-                </div>
+                <form onSubmit={submit}>
+                    <div className="space-y-6">
+                        <div>
+                            <Label htmlFor="name">Name</Label>
+                            <Input
+                                id="name"
+                                type="text"
+                                value={data.name}
+                                onChange={e => setData('name', e.target.value)}
+                                disabled={processing}
+                                required
+                                placeholder="Enter your full name"
+                            />
+                            <InputError message={errors.name} />
+                        </div>
 
-                <div className="bg-white overflow-hidden shadow-sm rounded-lg">
-                    <div className="p-6">
-                        <h2 className="text-2xl font-bold mb-6">Edit Company Profile</h2>
+                        <div>
+                            <Label htmlFor="email">Email</Label>
+                            <Input
+                                id="email"
+                                type="email"
+                                value={data.email}
+                                onChange={e => setData('email', e.target.value)}
+                                disabled={processing}
+                                required
+                                placeholder="Enter your email"
+                            />
+                            <InputError message={errors.email} />
+                        </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-6">
-                                    <div>
-                                        <Label htmlFor="photo">Profile Photo</Label>
-                                        <div className="mt-2 flex items-center gap-4">
-                                            <img
-                                                src={formData.photo || '/default-avatar.png'}
-                                                alt="Profile"
-                                                className="w-20 h-20 rounded-full object-cover"
-                                            />
-                                            <Input
-                                                id="photo"
-                                                type="file"
-                                                onChange={handlePhotoUpload}
-                                                accept="image/*"
-                                                disabled={submitting}
-                                            />
-                                        </div>
-                                    </div>
+                        <div>
+                            <Label htmlFor="phone">Phone Number</Label>
+                            <Input
+                                id="phone"
+                                type="tel"
+                                value={data.phone}
+                                onChange={e => setData('phone', e.target.value)}
+                                disabled={processing}
+                                placeholder="+251 99 999 9999"
+                            />
+                            <InputError message={errors.phone} />
+                        </div>
 
-                                    <div>
-                                        <Label htmlFor="name">Name</Label>
-                                        <Input
-                                            id="name"
-                                            name="name"
-                                            type="text"
-                                            value={formData.name}
-                                            onChange={handleInputChange}
-                                            className="mt-1"
-                                            disabled={submitting}
-                                            required
+                        <div>
+                            <Label htmlFor="photo">Company Logo</Label>
+                            <div className="mt-2 flex items-center gap-4">
+                                <img
+                                    src={data.photo instanceof File ? URL.createObjectURL(data.photo) : imageSrc}
+                                    alt="Company Logo"
+                                    className="w-20 h-20 rounded-full object-cover"
+                                />
+                                <Input
+                                    id="photo"
+                                    type="file"
+                                    onChange={handlePhotoChange}
+                                    accept="image/*"
+                                    disabled={processing}
+                                />
+                                {progress && (
+                                    <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-success transition-all duration-300"
+                                            style={{ width: `${progress}%` }}
                                         />
                                     </div>
-
-                                    <div>
-                                        <Label htmlFor="email">Email</Label>
-                                        <Input
-                                            id="email"
-                                            name="email"
-                                            type="email"
-                                            value={formData.email}
-                                            onChange={handleInputChange}
-                                            className="mt-1"
-                                            disabled={submitting}
-                                            required
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="phone">Phone</Label>
-                                        <Input
-                                            id="phone"
-                                            name="phone"
-                                            type="tel"
-                                            value={formData.phone}
-                                            onChange={handleInputChange}
-                                            className="mt-1"
-                                            disabled={submitting}
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="location">Location</Label>
-                                        <Input
-                                            id="location"
-                                            name="location"
-                                            type="text"
-                                            value={formData.location}
-                                            onChange={handleInputChange}
-                                            className="mt-1"
-                                            disabled={submitting}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-6">
-                                    <div>
-                                        <Label htmlFor="company_name">Company Name</Label>
-                                        <Input
-                                            id="company_name"
-                                            name="company_name"
-                                            type="text"
-                                            value={formData.company_name}
-                                            onChange={handleInputChange}
-                                            className="mt-1"
-                                            disabled={submitting}
-                                            required
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="company_website">Company Website</Label>
-                                        <Input
-                                            id="company_website"
-                                            name="company_website"
-                                            type="url"
-                                            value={formData.company_website}
-                                            onChange={handleInputChange}
-                                            className="mt-1"
-                                            placeholder="https://"
-                                            disabled={submitting}
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="company_size">Company Size</Label>
-                                        <select
-                                            id="company_size"
-                                            name="company_size"
-                                            value={formData.company_size}
-                                            onChange={handleInputChange}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                                            disabled={submitting}
-                                            required
-                                        >
-                                            <option value="">Select company size</option>
-                                            {companySizes.map(size => (
-                                                <option key={size} value={size}>
-                                                    {size} employees
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="industry">Industry</Label>
-                                        <select
-                                            id="industry"
-                                            name="industry"
-                                            value={formData.industry}
-                                            onChange={handleInputChange}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                                            disabled={submitting}
-                                            required
-                                        >
-                                            <option value="">Select industry</option>
-                                            {industries.map(industry => (
-                                                <option key={industry} value={industry}>
-                                                    {industry}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="company_description">Company Description</Label>
-                                        <textarea
-                                            id="company_description"
-                                            name="company_description"
-                                            value={formData.company_description}
-                                            onChange={handleInputChange}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                                            rows={5}
-                                            disabled={submitting}
-                                            required
-                                        />
-                                    </div>
-                                </div>
+                                )}
+                                <InputError message={errors.photo} />
                             </div>
+                        </div>
 
-                            <div className="flex justify-end gap-4">
-                                <Button
-                                    type="button"
-                                    variant="secondary"
-                                    onClick={() => router.visit(route('employee.profile.show'))}
-                                    disabled={submitting}
-                                >
-                                    Cancel
-                                </Button>
-                                <Button type="submit" disabled={submitting}>
-                                    {submitting && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
-                                    Save Changes
-                                </Button>
-                            </div>
-                        </form>
+                        <div>
+                            <Label htmlFor="company_name">Company Name</Label>
+                            <Input
+                                id="company_name"
+                                type="text"
+                                value={data.company_name}
+                                onChange={e => setData('company_name', e.target.value)}
+                                disabled={processing}
+                                required
+                                placeholder="Enter your company name"
+                            />
+                            <InputError message={errors.company_name} />
+                        </div>
+
+                        <div>
+                            <Label htmlFor="company_website">Company Website</Label>
+                            <Input
+                                id="company_website"
+                                type="url"
+                                value={data.company_website}
+                                onChange={e => setData('company_website', e.target.value)}
+                                disabled={processing}
+                                placeholder="https://www.yourcompany.com"
+                            />
+                            <InputError message={errors.company_website} />
+                        </div>
+
+                        <div>
+                            <Label htmlFor="company_size">Company Size</Label>
+                            <select
+                                id="company_size"
+                                className="form-select"
+                                value={data.company_size}
+                                onChange={e => setData('company_size', e.target.value)}
+                                disabled={processing}
+                                required
+                            >
+                                <option value="">Select company size</option>
+                                {companySizes.map(size => (
+                                    <option key={size} value={size}>{size} employees</option>
+                                ))}
+                            </select>
+                            <InputError message={errors.company_size} />
+                        </div>
+
+                        <div>
+                            <Label htmlFor="industry">Industry</Label>
+                            <select
+                                id="industry"
+                                className="form-select"
+                                value={data.industry}
+                                onChange={e => setData('industry', e.target.value)}
+                                disabled={processing}
+                                required
+                            >
+                                <option value="">Select industry</option>
+                                {industries.map(industry => (
+                                    <option key={industry} value={industry}>{industry}</option>
+                                ))}
+                            </select>
+                            <InputError message={errors.industry} />
+                        </div>
+
+                        <div>
+                            <Label htmlFor="location">Location</Label>
+                            <Input
+                                id="location"
+                                type="text"
+                                value={data.location}
+                                onChange={e => setData('location', e.target.value)}
+                                disabled={processing}
+                                required
+                                placeholder="City, Country"
+                            />
+                            <InputError message={errors.location} />
+                        </div>
+
+                        <div>
+                            <Label htmlFor="company_description">Company Description</Label>
+                            <Textarea
+                                id="company_description"
+                                value={data.company_description}
+                                onChange={e => setData('company_description', e.target.value)}
+                                disabled={processing}
+                                required
+                                placeholder="Describe your company, its mission, and values..."
+                                rows={6}
+                            />
+                            <InputError message={errors.company_description} />
+                        </div>
                     </div>
-                </div>
+
+                    <div className="flex justify-end gap-4 mt-6">
+                        <Button
+                            type="button"
+                            className='btn btn-outline-secondary'
+                            onClick={() => router.visit(route('employee.profile.show'))}
+                            disabled={processing}
+                        >
+                            Cancel
+                        </Button>
+                        <Button type="submit" disabled={processing} className='btn btn-outline-success'>
+                            {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
+                            Save Changes
+                        </Button>
+                    </div>
+                </form>
             </div>
         </div>
     );

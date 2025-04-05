@@ -27,6 +27,16 @@ interface Props {
 }
 
 export default function Show({ interview }: Props) {
+    if (!interview) {
+        return (
+            <div className="container py-4">
+                <div className="alert alert-danger">
+                    Interview not found.
+                </div>
+            </div>
+        );
+    }
+
     const formatDateTime = (dateTime: string) => {
         return new Date(dateTime).toLocaleString();
     };
@@ -136,11 +146,11 @@ export default function Show({ interview }: Props) {
                                 {/* Action Buttons */}
                                 <div className="d-flex justify-content-between">
                                     <a 
-                                        href={route('applications.show', interview.job_application.id)} 
+                                        href={route('interviews.index')} 
                                         className="btn btn-outline-secondary"
                                     >
                                         <i className="fas fa-arrow-left me-2"></i>
-                                        Back to Application
+                                        Back to Interviews
                                     </a>
                                     <div>
                                         <a 

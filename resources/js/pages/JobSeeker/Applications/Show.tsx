@@ -1,6 +1,6 @@
 import React from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { Job } from '@/types';
+import type { Job } from '@/types/index';
 
 interface Application {
     id: number;
@@ -15,9 +15,14 @@ interface Application {
 
 interface Props {
     application: Application;
+    flash?: {
+        success?: string;
+        error?: string;
+    };
+    error?: string;
 }
 
-export default function Show({ application }: Props) {
+export default function Show({ application, flash, error }: Props) {
     const getStatusBadgeClass = (status: Application['status']) => {
         switch (status) {
             case 'accepted':
@@ -44,6 +49,19 @@ export default function Show({ application }: Props) {
             <Head title={`Application for ${application.job.title}`} />
 
             <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                {flash?.success && (
+                    <div className="alert alert-success alert-dismissible fade show" role="alert">
+                        {flash.success}
+                        <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                )}
+                {(flash?.error || error) && (
+                    <div className="alert alert-danger alert-dismissible fade show" role="alert">
+                        {flash?.error || error}
+                        <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                )}
+
                 <div className="mb-6 flex justify-between items-center">
                     <Link href={route('applications.index')} className="btn btn-outline-success">
                         <i className="fas fa-arrow-left me-2"></i>

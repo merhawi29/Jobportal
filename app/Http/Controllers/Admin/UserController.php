@@ -65,7 +65,11 @@ class UserController extends Controller
 
             return response()->json($employers);
         } catch (\Exception $e) {
-            Log::error('Error fetching employers: ' . $e->getMessage());
+            Log::error('Error fetching employers: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return response()->json(['error' => 'Failed to fetch employers'], 500);
         }
     }

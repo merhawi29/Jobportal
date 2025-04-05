@@ -13,7 +13,7 @@ interface JobSeekerProfileForm {
     name: string;
     email: string;
     phone: string;
-    photo: File | null;
+    profile_picture: File | null;
     location: string;
     education: Array<{ institution: string; degree: string }>;
     experience: Array<{ company: string; position: string }>;
@@ -36,7 +36,7 @@ export default function Create() {
         name: '',
         email: '',
         phone: '',
-        photo: null,
+        profile_picture: null,
         location: '',
         education: [],
         experience: [],
@@ -58,14 +58,14 @@ export default function Create() {
         e.preventDefault();
         post(route('jobseeker.profile.store'), {
             onSuccess: () => {
-                router.visit(route('home'));
+                router.visit(route('jobseeker.profile.show'));
             }
         });
     };
 
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files?.[0]) {
-            setData('photo', e.target.files[0]);
+            setData('profile_picture', e.target.files[0]);
         }
     };
 
@@ -86,10 +86,10 @@ export default function Create() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div className="space-y-6">
                                     <div>
-                                        <Label htmlFor="photo">Profile Photo</Label>
+                                        <Label htmlFor="profile_picture">Profile Photo</Label>
                                         <div className="mt-2">
                                             <Input
-                                                id="photo"
+                                                id="profile_picture"
                                                 type="file"
                                                 onChange={handlePhotoChange}
                                                 accept="image/*"
@@ -103,7 +103,7 @@ export default function Create() {
                                                     />
                                                 </div>
                                             )}
-                                            <InputError message={errors.photo} />
+                                            <InputError message={errors.profile_picture} />
                                         </div>
                                     </div>
 
@@ -276,31 +276,123 @@ export default function Create() {
                             <div>
                                 <Label htmlFor="skills">Skills</Label>
                                 <div className="space-y-2">
-                                        {data.skills.map((skill, index) => (
+                                    {data.skills.map((skill, index) => (
                                         <div key={index} className="flex gap-2">
                                             <Input
                                                 type="text"
                                                 value={skill}
-                                                    onChange={e => {
+                                                onChange={e => {
                                                     const newSkills = [...data.skills];
                                                     newSkills[index] = e.target.value;
                                                     setData('skills', newSkills);
                                                 }}
                                                 placeholder="Skill"
-                                                    disabled={processing}
+                                                disabled={processing}
                                             />
+                                            <Button
+                                                type="button"
+                                                className='btn btn-outline-danger'
+                                                onClick={() => {
+                                                    const newSkills = data.skills.filter((_, i) => i !== index);
+                                                    setData('skills', newSkills);
+                                                }}
+                                                disabled={processing}
+                                            >
+                                                Remove
+                                            </Button>
                                         </div>
                                     ))}
-                                        <Button
+                                    <Button
                                         type="button"
-                                            className='btn btn-outline-secondary'
+                                        className='btn btn-outline-secondary'
                                         onClick={() => setData('skills', [...data.skills, ''])}
-                                            disabled={processing}
+                                        disabled={processing}
                                     >
-                                            Add Skill
-                                        </Button>
+                                        Add Skill
+                                    </Button>
                                 </div>
                             </div>
+                            </div>
+
+                            <div>
+                                <Label>Privacy Settings</Label>
+                                <div className="space-y-4 mt-2">
+                                    <div>
+                                        <Label htmlFor="profile_visibility">Profile Visibility</Label>
+                                        <select
+                                            id="profile_visibility"
+                                            value={data.privacy_settings.profile_visibility}
+                                            onChange={e => setData('privacy_settings', {
+                                                ...data.privacy_settings,
+                                                profile_visibility: e.target.value as 'public' | 'private' | 'registered'
+                                            })}
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                                            disabled={processing}
+                                        >
+                                            <option value="public">Public</option>
+                                            <option value="private">Private</option>
+                                            <option value="registered">Registered Users Only</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="flex items-center">
+                                            <input
+                                                type="checkbox"
+                                                id="show_email"
+                                                checked={data.privacy_settings.show_email}
+                                                onChange={e => setData('privacy_settings', {
+                                                    ...data.privacy_settings,
+                                                    show_email: e.target.checked
+                                                })}
+                                                className="rounded border-gray-300 text-green-600 shadow-sm focus:border-green-500 focus:ring-green-500"
+                                                disabled={processing}
+                                            />
+                                            <Label htmlFor="show_email" className="ml-2">Show Email</Label>
+                                        </div>
+                                        <div className="flex items-center">
+                                            <input
+                                                type="checkbox"
+                                                id="show_phone"
+                                                checked={data.privacy_settings.show_phone}
+                                                onChange={e => setData('privacy_settings', {
+                                                    ...data.privacy_settings,
+                                                    show_phone: e.target.checked
+                                                })}
+                                                className="rounded border-gray-300 text-green-600 shadow-sm focus:border-green-500 focus:ring-green-500"
+                                                disabled={processing}
+                                            />
+                                            <Label htmlFor="show_phone" className="ml-2">Show Phone</Label>
+                                        </div>
+                                        <div className="flex items-center">
+                                            <input
+                                                type="checkbox"
+                                                id="show_education"
+                                                checked={data.privacy_settings.show_education}
+                                                onChange={e => setData('privacy_settings', {
+                                                    ...data.privacy_settings,
+                                                    show_education: e.target.checked
+                                                })}
+                                                className="rounded border-gray-300 text-green-600 shadow-sm focus:border-green-500 focus:ring-green-500"
+                                                disabled={processing}
+                                            />
+                                            <Label htmlFor="show_education" className="ml-2">Show Education</Label>
+                                        </div>
+                                        <div className="flex items-center">
+                                            <input
+                                                type="checkbox"
+                                                id="show_experience"
+                                                checked={data.privacy_settings.show_experience}
+                                                onChange={e => setData('privacy_settings', {
+                                                    ...data.privacy_settings,
+                                                    show_experience: e.target.checked
+                                                })}
+                                                className="rounded border-gray-300 text-green-600 shadow-sm focus:border-green-500 focus:ring-green-500"
+                                                disabled={processing}
+                                            />
+                                            <Label htmlFor="show_experience" className="ml-2">Show Experience</Label>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="flex justify-end gap-4">

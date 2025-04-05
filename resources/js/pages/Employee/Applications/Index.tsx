@@ -8,11 +8,16 @@ interface JobApplication {
         title: string;
     };
     user: {
+        id: number;
         name: string;
+        jobSeekerProfile?: {
+            photo?: string;
+        };
     };
     status: 'pending' | 'under_review' | 'interview_scheduled' | 'hired' | 'rejected';
     created_at: string;
     interview_date?: string;
+    resume: string;
 }
 
 interface Pagination<T> {
@@ -98,9 +103,11 @@ export default function Index({ applications }: Props) {
                                     <tr>
                                         <th>Job Title</th>
                                         <th>Applicant</th>
+                                        <th>Profile</th>
                                         <th>Applied Date</th>
                                         <th>Status</th>
                                         <th>Interview Date</th>
+                                        <th>Resume</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -109,6 +116,30 @@ export default function Index({ applications }: Props) {
                                         <tr key={application.id}>
                                             <td>{application.job.title}</td>
                                             <td>{application.user.name}</td>
+                                            <td>
+                                                <Link
+                                                    href={route('jobseeker.profile.show', application.user.id)}
+                                                    className="d-inline-block"
+                                                    title={`View ${application.user.name}'s Profile`}
+                                                    target="_blank"
+                                                >
+                                                    {application.user.jobSeekerProfile?.photo ? (
+                                                        <img 
+                                                            src={application.user.jobSeekerProfile.photo} 
+                                                            alt={`${application.user.name}'s profile`}
+                                                            className="rounded-circle"
+                                                            style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                                                        />
+                                                    ) : (
+                                                        <div 
+                                                            className="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white"
+                                                            style={{ width: '40px', height: '40px' }}
+                                                        >
+                                                            <i className="fas fa-user"></i>
+                                                        </div>
+                                                    )}
+                                                </Link>
+                                            </td>
                                             <td>{new Date(application.created_at).toLocaleDateString()}</td>
                                             <td>
                                                 <span className={`badge ${getStatusBadgeClass(application.status)}`}>
@@ -121,6 +152,20 @@ export default function Index({ applications }: Props) {
                                                     new Date(application.interview_date).toLocaleDateString()}
                                             </td>
                                             <td>
+                                                {application.resume && (
+                                                    <a
+                                                        href={application.resume}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="btn btn-sm btn-info"
+                                                        title="Download Resume"
+                                                        download
+                                                    >
+                                                        <i className="fas fa-file-download"></i> Download
+                                                    </a>
+                                                )}
+                                            </td>
+                                            <td>
                                                 <div className="btn-group">
                                                     <Link 
                                                         href={route('employer.applications.show', application.id)} 
@@ -128,6 +173,13 @@ export default function Index({ applications }: Props) {
                                                         title="View Details"
                                                     >
                                                         <i className="fas fa-eye"></i>
+                                                    </Link>
+                                                    <Link
+                                                        href={route('jobseeker.profile.show', application.user.id)}
+                                                        className="btn btn-sm btn-info"
+                                                        title="View Profile"
+                                                    >
+                                                        <i className="fas fa-user"></i>
                                                     </Link>
                                                     <button 
                                                         onClick={() => updateStatus(application.id, 'under_review')}

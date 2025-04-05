@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { Job } from '@/types';
+import type { Job } from '@/types/index';
 
 interface Props {
     jobs: {
@@ -27,7 +27,8 @@ export default function Index({ jobs, filters, auth }: Props) {
         jobTypes: true,
         jobSites: true
     });
-    const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>([]);
+    const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>(filters.type ? filters.type.split(',') : []);
+    const [selectedSector, setSelectedSector] = useState<string>(filters.sector || '');
 
     const jobTypes = [
         { id: 'permanent', label: 'Permanent (Full-time)' },
@@ -40,12 +41,37 @@ export default function Index({ jobs, filters, auth }: Props) {
         { id: 'intern-unpaid', label: 'Intern (Unpaid)' }
     ];
 
+    const sectors = [
+        { id: 'technology', label: 'Technology' },
+        { id: 'healthcare', label: 'Healthcare' },
+        { id: 'finance', label: 'Finance' },
+        { id: 'education', label: 'Education' },
+        { id: 'retail', label: 'Retail' }
+    ];
+
     const handleJobTypeChange = (typeId: string) => {
-        setSelectedJobTypes(prev => {
-            if (prev.includes(typeId)) {
-                return prev.filter(type => type !== typeId);
-            }
-            return [...prev, typeId];
+        const newTypes = selectedJobTypes.includes(typeId)
+            ? selectedJobTypes.filter(type => type !== typeId)
+            : [...selectedJobTypes, typeId];
+        
+        setSelectedJobTypes(newTypes);
+        router.get(route('jobs.index'), {
+            type: newTypes.join(','),
+            sector: selectedSector
+        }, {
+            preserveState: true,
+            preserveScroll: true
+        });
+    };
+
+    const handleSectorChange = (sectorId: string) => {
+        setSelectedSector(sectorId);
+        router.get(route('jobs.index'), {
+            type: selectedJobTypes.join(','),
+            sector: sectorId
+        }, {
+            preserveState: true,
+            preserveScroll: true
         });
     };
 
@@ -110,13 +136,17 @@ export default function Index({ jobs, filters, auth }: Props) {
                                         <i className={`fas fa-chevron-${isFilterOpen.sector ? 'up' : 'down'}`}></i>
                                     </div>
                                     {isFilterOpen.sector && (
-                                        <select className="form-select border-0 bg-light">
-                                            <option value="">Select sector</option>
-                                            <option value="technology">Technology</option>
-                                            <option value="healthcare">Healthcare</option>
-                                            <option value="finance">Finance</option>
-                                            <option value="education">Education</option>
-                                            <option value="retail">Retail</option>
+                                        <select 
+                                            className="form-select border-0 bg-light"
+                                            value={selectedSector}
+                                            onChange={(e) => handleSectorChange(e.target.value)}
+                                        >
+                                            <option value="">All Sectors</option>
+                                            {sectors.map(sector => (
+                                                <option key={sector.id} value={sector.id}>
+                                                    {sector.label}
+                                                </option>
+                                            ))}
                                         </select>
                                     )}
                                 </div>
@@ -228,12 +258,20 @@ export default function Index({ jobs, filters, auth }: Props) {
                 </div>
 
                                         <div className="d-flex justify-content-between align-items-center">
-                                            <Link 
-                                                href={route('jobs.show', job.id)}
-                                                className="btn btn-outline-success btn-sm px-4"
-                                            >
-                                                View Details
-                                            </Link>
+                                            <div className="d-flex gap-2">
+                                                <Link 
+                                                    href={route('jobs.show', job.id)}
+                                                    className="btn btn-outline-success btn-sm px-4"
+                                                >
+                                                    View Details
+                                                </Link>
+                                                <Link 
+                                                    href={route('companies.show', job.user.id)}
+                                                    className="btn btn-outline-success btn-sm px-4"
+                                                >
+                                                    View Company
+                                                </Link>
+                                            </div>
                                             <small className="text-muted">
                                                 Posted {formatTimeAgo(job.created_at)}
                                             </small>

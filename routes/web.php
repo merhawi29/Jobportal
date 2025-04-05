@@ -25,6 +25,7 @@ Route::get('/', function () {
 // Public job routes
 Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/{job}', [JobController::class, 'show'])->name('jobs.show');
+Route::get('/companies/{user}', [EmployeeProfileController::class, 'show'])->name('companies.show');
 
 
 // Protected job routes
@@ -79,7 +80,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     Route::prefix('jobseeker')->name('jobseeker.')->group(function () {
-        Route::get('/profile/', [JobSeekerProfileController::class, 'edit'])->name('profile.edit');
+        Route::get('/profile', [JobSeekerProfileController::class, 'edit'])->name('profile.edit');
         Route::put('/profile', [JobSeekerProfileController::class, 'update'])->name('profile.update');
         Route::post('/profile/photo', [JobSeekerProfileController::class, 'updatePhoto'])->name('profile.photo');
         Route::get('/profile/show/{id?}', [JobSeekerProfileController::class, 'show'])->name('profile.show');
@@ -118,8 +119,6 @@ Route::prefix('employee')->name('employee.')->middleware(['auth'])->group(functi
 
 // Job Seeker routes that require profile completion
 Route::middleware(['auth'])->group(function () {
-    Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
-    Route::get('/jobs/{job}', [JobController::class, 'show'])->name('jobs.show');
     Route::post('/jobs/{job}/apply', [JobApplicationController::class, 'store'])->name('jobs.apply');
     Route::get('/applications', [JobApplicationController::class, 'index'])->name('applications.index');
     // Route::get('/dashboard', [JobSeekerDashboardController::class, 'index'])->name('jobseeker.dashboard');

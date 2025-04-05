@@ -31,16 +31,19 @@ class JobApplicationController extends Controller
     public function index()
     {
         $applications = JobApplication::query()
-            ->whereHas('job', function ($query) {
-                $query->where('user_id', auth()->id());
-            })
+            ->where('user_id', auth()->id())
             ->with(['job', 'user', 'interviews'])
             ->latest()
             ->paginate(10);
 
         return Inertia::render('JobSeeker/Applications/Index', [
             'applications' => $applications,
-            'statuses' => JobApplication::STATUSES
+            'statuses' => JobApplication::STATUSES,
+            'flash' => [
+                'success' => session('success'),
+                'error' => session('error')
+            ],
+            'error' => session('error')
         ]);
     }
 
@@ -57,7 +60,11 @@ class JobApplicationController extends Controller
 
         // Validate request
         $validated = $request->validate([
-            'cover_letter' => 'required|string|min:100',
+            'cover_letter' => ['required', 'string', 'min:100', function ($attribute, $value, $fail) {
+                if (strlen($value) < 100) {
+                    $fail('The cover letter must be at least 100 characters long. Current count: ' . strlen($value));
+                }
+            }],
             'resume' => 'required|file|mimes:pdf,doc,docx|max:2048',
         ]);
 
@@ -81,7 +88,7 @@ class JobApplicationController extends Controller
             if (isset($resumePath)) {
                 Storage::delete($resumePath);
             }
-            throw $e;
+            return back()->with('error', 'Failed to submit application. Please try again.');
         }
     }
 
@@ -93,7 +100,12 @@ class JobApplicationController extends Controller
         }
 
         return Inertia::render('JobSeeker/Applications/Show', [
-            'application' => $application->load('job')
+            'application' => $application->load('job'),
+            'flash' => [
+                'success' => session('success'),
+                'error' => session('error')
+            ],
+            'error' => session('error')
         ]);
     }
 

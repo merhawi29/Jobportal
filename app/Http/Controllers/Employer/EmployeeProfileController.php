@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
-use App\Models\Employer;
+use App\Models\EmployeeProfile;
 use Illuminate\Validation\ValidationException;
 
 class EmployeeProfileController extends Controller
@@ -15,7 +15,7 @@ class EmployeeProfileController extends Controller
     public function create()
     {
         $user = auth()->user();
-        $profile = $user->employer ?? new Employer();
+        $profile = $user->employeeProfile ?? new EmployeeProfile();
         
         return Inertia::render('Employee/profile/Create', [
             'profile' => [
@@ -45,27 +45,31 @@ class EmployeeProfileController extends Controller
                 'industry' => 'required|string|max:100',
                 'company_description' => 'required|string|max:1000',
                 'location' => 'required|string|max:255',
+                'photo' => 'nullable|image|max:2048', // 2MB max
             ]);
 
             $user = auth()->user();
 
-            // Update user basic info
-            $user->update([
-                'name' => $validated['name'],
-                'email' => $validated['email'],
-                'phone' => $validated['phone'] ?? null,
-            ]);
+            // Handle photo upload if present
+            $photoPath = null;
+            if ($request->hasFile('photo')) {
+                $photoPath = $request->file('photo')->store('employee_photos', 'public');
+            }
 
-            // Create or update employer profile
-            $user->employer()->updateOrCreate(
+            // Create or update employee profile
+            $user->employeeProfile()->updateOrCreate(
                 ['user_id' => $user->id],
                 [
+                    'name' => $validated['name'],
+                    'email' => $validated['email'],
+                    'phone' => $validated['phone'] ?? null,
                     'company_name' => $validated['company_name'],
                     'company_website' => $validated['company_website'] ?? null,
                     'company_size' => $validated['company_size'],
                     'industry' => $validated['industry'],
                     'company_description' => $validated['company_description'],
                     'location' => $validated['location'],
+                    'photo' => $photoPath,
                 ]
             );
 
@@ -89,27 +93,27 @@ class EmployeeProfileController extends Controller
     public function show($id = null)
     {
         if ($id) {
-            $employer = Employer::with('user')->findOrFail($id);
-            $isOwnProfile = auth()->id() === $employer->user_id;
+            $profile = EmployeeProfile::with('user')->findOrFail($id);
+            $isOwnProfile = auth()->id() === $profile->user_id;
         } else {
             $user = auth()->user();
-            $employer = $user->employer ?? new Employer();
+            $profile = $user->employeeProfile ?? new EmployeeProfile();
             $isOwnProfile = true;
         }
 
         return Inertia::render('Employee/profile/Show', [
             'employee' => [
-                'id' => $employer->id ?? null,
-                'name' => $employer->user?->name ?? '',
-                'email' => $employer->user?->email ?? '',
-                'phone' => $employer->user?->phone ?? '',
-                'photo' => $employer->photo ? Storage::url($employer->photo) : null,
-                'company_name' => $employer->company_name ?? '',
-                'company_website' => $employer->company_website,
-                'company_size' => $employer->company_size ?? '',
-                'industry' => $employer->industry ?? '',
-                'company_description' => $employer->company_description ?? '',
-                'location' => $employer->location ?? '',
+                'id' => $profile->id ?? null,
+                'name' => $profile->name ?? $profile->user->name ?? '',
+                'email' => $profile->email ?? $profile->user->email ?? '',
+                'phone' => $profile->phone ?? $profile->user->phone ?? '',
+                'photo' => $profile->photo ? Storage::url($profile->photo) : null,
+                'company_name' => $profile->company_name ?? '',
+                'company_website' => $profile->company_website,
+                'company_size' => $profile->company_size ?? '',
+                'industry' => $profile->industry ?? '',
+                'company_description' => $profile->company_description ?? '',
+                'location' => $profile->location ?? '',
             ],
             'isOwnProfile' => $isOwnProfile
         ]);
@@ -118,14 +122,14 @@ class EmployeeProfileController extends Controller
     public function edit()
     {
         $user = auth()->user();
-        $profile = $user->employer ?? new Employer();
+        $profile = $user->employeeProfile ?? new EmployeeProfile();
 
         return Inertia::render('Employee/profile/Edit', [
             'employee' => [
                 'id' => $profile->id ?? null,
-                'name' => $user->name,
-                'email' => $user->email,
-                'phone' => $user->phone,
+                'name' => $profile->name ?? $user->name,
+                'email' => $profile->email ?? $user->email,
+                'phone' => $profile->phone ?? $user->phone,
                 'photo' => $profile->photo ? Storage::url($profile->photo) : null,
                 'company_name' => $profile->company_name ?? '',
                 'company_website' => $profile->company_website,
@@ -152,33 +156,40 @@ class EmployeeProfileController extends Controller
                 'industry' => 'required|string|max:100',
                 'company_description' => 'required|string|max:1000',
                 'location' => 'required|string|max:255',
+                'photo' => 'nullable|image|max:2048', // 2MB max
             ]);
 
             $user = auth()->user();
             Log::info('Authenticated user', ['user_id' => $user->id]);
 
             try {
-                // Update user basic info
-                $user->update([
-                    'name' => $validated['name'],
-                    'email' => $validated['email'],
-                    'phone' => $validated['phone'] ?? null,
-                ]);
-                Log::info('User basic info updated successfully');
+                // Handle photo upload if present
+                $photoPath = null;
+                if ($request->hasFile('photo')) {
+                    // Delete old photo if exists
+                    if ($user->employeeProfile?->photo) {
+                        Storage::delete($user->employeeProfile->photo);
+                    }
+                    $photoPath = $request->file('photo')->store('employee_photos', 'public');
+                }
 
-                // Create or update employer profile
-                $employer = $user->employer()->updateOrCreate(
+                // Create or update employee profile
+                $profile = $user->employeeProfile()->updateOrCreate(
                     ['user_id' => $user->id],
                     [
+                        'name' => $validated['name'],
+                        'email' => $validated['email'],
+                        'phone' => $validated['phone'] ?? null,
                         'company_name' => $validated['company_name'],
                         'company_website' => $validated['company_website'] ?? null,
                         'company_size' => $validated['company_size'],
                         'industry' => $validated['industry'],
                         'company_description' => $validated['company_description'],
                         'location' => $validated['location'],
+                        'photo' => $photoPath ?? $user->employeeProfile?->photo,
                     ]
                 );
-                Log::info('Employer profile updated successfully', ['employer_id' => $employer->id]);
+                Log::info('Employee profile updated successfully', ['profile_id' => $profile->id]);
 
                 return redirect()
                     ->back()
@@ -220,13 +231,13 @@ class EmployeeProfileController extends Controller
             $user = auth()->user();
             
             // Delete old photo if exists
-            if ($user->employer?->photo) {
-                Storage::delete($user->employer->photo);
+            if ($user->employeeProfile?->photo) {
+                Storage::delete($user->employeeProfile->photo);
             }
 
             $photoPath = $request->file('photo')->store('employee_photos', 'public');
 
-            $user->employer()->update(['photo' => $photoPath]);
+            $user->employeeProfile()->update(['photo' => $photoPath]);
 
             return response()->json(['photo' => Storage::url($photoPath)]);
         } catch (\Exception $e) {

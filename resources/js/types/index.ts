@@ -107,6 +107,7 @@ export interface Activity {
 }
 
 export interface Job {
+    user_id: number | undefined;
     id: number;
     title: string;
     company: string;

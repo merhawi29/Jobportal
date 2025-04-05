@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import { Link } from '@inertiajs/react';
@@ -15,7 +15,7 @@ interface Props {
         name: string;
         email: string;
         phone: string;
-        photo: string | null;
+        profile_picture: string | null;
         location: string;
         education: Array<{ institution: string; degree: string }>;
         experience: Array<{ company: string; position: string }>;
@@ -44,7 +44,7 @@ interface JobSeekerProfileForm {
     name: string;
     email: string;
     phone: string;
-    photo: File | null;
+    profile_picture: File | null;
     location: string;
     education: Array<{ institution: string; degree: string }>;
     experience: Array<{ company: string; position: string }>;
@@ -63,11 +63,39 @@ interface JobSeekerProfileForm {
 }
 
 export default function Edit({ profile, flash, error }: Props) {
+    const [imageError, setImageError] = useState(false);
+    const [imageSrc, setImageSrc] = useState(profile.profile_picture || '/profile-photos/default-avatar.png');
+    
+    useEffect(() => {
+        if (!profile.profile_picture) {
+            setImageSrc('/profile-photos/default-avatar.png');
+            return;
+        }
+
+        const img = new Image();
+        img.src = profile.profile_picture;
+        
+        img.onload = () => {
+            setImageError(false);
+            setImageSrc(profile.profile_picture || '/profile-photos/default-avatar.png');
+        };
+        
+        img.onerror = () => {
+            setImageError(true);
+            setImageSrc('/profile-photos/default-avatar.png');
+        };
+        
+        return () => {
+            img.onload = null;
+            img.onerror = null;
+        };
+    }, [profile.profile_picture]);
+
     const { data, setData, post, processing, errors, progress } = useForm<JobSeekerProfileForm>({
         name: profile.name,
         email: profile.email,
         phone: profile.phone,
-        photo: null,
+        profile_picture: null,
         location: profile.location,
         education: profile.education || [],
         experience: profile.experience || [],
@@ -87,13 +115,15 @@ export default function Edit({ profile, flash, error }: Props) {
 
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files?.[0]) {
-            setData('photo', e.target.files[0]);
+            const file = e.target.files[0];
+            setData('profile_picture', file);
+            setImageSrc(URL.createObjectURL(file));
         }
     };
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('jobseeker.profile.update'));
+        router.put(route('jobseeker.profile.update'), data);
     };
 
     return (
@@ -150,17 +180,15 @@ export default function Edit({ profile, flash, error }: Props) {
                         </div>
 
                         <div>
-                            <Label htmlFor="photo">Profile Photo</Label>
+                            <Label htmlFor="profile_picture">Profile Photo</Label>
                             <div className="mt-2 flex items-center gap-4">
-                                {data.photo && (
-                                    <img
-                                        src={data.photo instanceof File ? URL.createObjectURL(data.photo) : (data.photo || '/default-avatar.png')}
-                                        alt="Profile"
-                                        className="w-20 h-20 rounded-full object-cover"
-                                    />
-                                )}
+                                <img
+                                    src={data.profile_picture instanceof File ? URL.createObjectURL(data.profile_picture) : imageSrc}
+                                    alt="Profile"
+                                    className="w-20 h-20 rounded-full object-cover"
+                                />
                                 <Input
-                                    id="photo"
+                                    id="profile_picture"
                                     type="file"
                                     onChange={handlePhotoChange}
                                     accept="image/*"
@@ -174,7 +202,7 @@ export default function Edit({ profile, flash, error }: Props) {
                                         />
                                     </div>
                                 )}
-                                <InputError message={errors.photo} />
+                                <InputError message={errors.profile_picture} />
                             </div>
                         </div>
 

@@ -56,11 +56,13 @@ const jobTypes = [
       {flash?.success && (
                     <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
                         {flash.success}
+                        <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 )}
                 {(flash?.error || error) && (
                     <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
                         {flash?.error || error}
+                        <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 )}
 

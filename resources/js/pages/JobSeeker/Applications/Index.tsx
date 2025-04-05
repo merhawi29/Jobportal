@@ -1,6 +1,6 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
-import type { Job } from '../../../types/index';
+import type { Job } from '@/types/index';
 import Pagination from '@/components/Pagination';
 
 interface Application {
@@ -16,9 +16,14 @@ interface Props {
         data: Application[];
         links: any[];
     };
+    flash?: {
+        success?: string;
+        error?: string;
+    };
+    error?: string;
 }
 
-export default function Index({ applications }: Props) {
+export default function Index({ applications, flash, error }: Props) {
     const getStatusBadgeClass = (status: Application['status']) => {
         switch (status) {
             case 'accepted':
@@ -47,6 +52,20 @@ export default function Index({ applications }: Props) {
                         </a>
                     </div>
                 </div>
+
+                {flash?.success && (
+                    <div className="alert alert-success alert-dismissible fade show" role="alert">
+                        {flash.success}
+                        <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                )}
+                {(flash?.error || error) && (
+                    <div className="alert alert-danger alert-dismissible fade show" role="alert">
+                        {flash?.error || error}
+                        <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                )}
+
                 <div className="mb-6">
                     <h1 className="text-3xl font-bold">My Applications</h1>
                     <p className="text-gray-600">Track and manage your job applications</p>

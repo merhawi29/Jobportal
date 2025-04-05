@@ -30,7 +30,9 @@ class InterviewController extends Controller
 
     public function edit(Interview $interview)
     {
-        // Show edit form
+        return Inertia::render('Employee/Interviews/Edit', [
+            'interview' => $interview->load(['job_application.user', 'job_application.job'])
+        ]);
     }
 
     public function update(Request $request, Interview $interview)
@@ -50,6 +52,8 @@ class InterviewController extends Controller
 
     public function destroy(Interview $interview)
     {
-        // Delete interview
+        $interview->delete();
+        
+        return redirect()->back()->with('success', 'Interview cancelled successfully.');
     }
 } 

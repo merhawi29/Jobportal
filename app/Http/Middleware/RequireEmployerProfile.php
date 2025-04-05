@@ -18,10 +18,10 @@ class RequireEmployerProfile
         $user = $request->user();
 
         if ($user && $user->role === 'employer') {
-            $employer = $user->employer;
+            $employeeProfile = $user->employeeProfile;
 
             // Check if employer profile is incomplete
-            if (!$employer || !$employer->company_name || !$employer->industry || !$employer->company_size) {
+            if (!$employeeProfile || !$employeeProfile->company_name || !$employeeProfile->industry || !$employeeProfile->company_size) {
                 return redirect()->route('employee.profile.create')
                     ->with('message', 'Please complete your company profile to access this feature.');
             }

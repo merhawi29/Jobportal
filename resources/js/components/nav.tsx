@@ -8,7 +8,7 @@ interface User {
     name: string;
     email: string;
     role: string;
-    photo?: string | null;
+    profile_picture?: string | null;
 }
 
 interface Props {
@@ -258,17 +258,17 @@ const Nav = () => {
                                                     data-bs-toggle="dropdown"
                                                 >
                                                     <img
-                                                        src={auth.user?.photo || '/default-avatar.png'}
+                                                        src={auth.user?.profile_picture || '/default-avatar.png'}
                                                         alt={`${auth.user?.name}'s avatar`}
                                                         className="rounded-circle me-2"
                                                         style={{ width: '40px', height: '40px', objectFit: 'cover' }}
                                                         onError={(e) => {
                                                             const target = e.target as HTMLImageElement;
                                                             target.onerror = null;
-                                                            target.src = '/default-avatar.png';
+                                                            target.src = 'assets/img/logo/testimonial.png';
                                                         }}
                                                     />
-                                                    <span className="d-none d-sm-inline">{auth.user?.name}</span>
+                                                   
                                                 </Link>
                                                 <ul className="dropdown-menu dropdown-menu-end">
                                                     <li>
@@ -497,7 +497,7 @@ const Nav = () => {
                                                     data-bs-toggle="dropdown"
                                                 >
                                                     <img
-                                                        src={auth.user?.photo || '/default-avatar.png'}
+                                                        src={auth.user?.profile_picture || '/default-avatar.png'}
                                                         alt={`${auth.user?.name}'s avatar`}
                                                         className="rounded-circle me-2"
                                                         style={{ width: '40px', height: '40px', objectFit: 'cover' }}

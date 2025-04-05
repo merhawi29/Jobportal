@@ -1,6 +1,8 @@
 import React, { FormEvent, useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { Job } from '@/types';
+import type { Job } from '@/types/index';
+import ApplicationFormModal from '@/components/ApplicationFormModal';
+
 interface Props {
     job: Job;
     auth: {
@@ -11,9 +13,14 @@ interface Props {
     };
     isSaved?: boolean;
     hasApplied?: boolean;
+    flash?: {
+        success?: string;
+        error?: string;
+    };
+    error?: string;
 }
 
-export default function Show({ job, auth, isSaved = false, hasApplied = false }: Props) {
+export default function Show({ job, auth, isSaved = false, hasApplied = false, flash, error }: Props) {
     const isJobSeeker = auth.user?.role === "job_seeker";
     // console.log(isJobSeeker);
     const isJobOwner = auth.user?.id === job.user_id;
@@ -69,6 +76,19 @@ export default function Show({ job, auth, isSaved = false, hasApplied = false }:
             <Head title={`${job.title} - Job Details`} />
 
             <div className="container py-5">
+                {flash?.success && (
+                    <div className="alert alert-success alert-dismissible fade show" role="alert">
+                        {flash.success}
+                        <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                )}
+                {(flash?.error || error) && (
+                    <div className="alert alert-danger alert-dismissible fade show" role="alert">
+                        {flash?.error || error}
+                        <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                )}
+
                 <div className="mb-4 d-flex justify-content-between align-items-center">
                     <Link href={route('jobs.index')} className="btn btn-outline-success">
                         <i className="fas fa-arrow-left me-2"></i>
@@ -154,73 +174,14 @@ export default function Show({ job, auth, isSaved = false, hasApplied = false }:
                     </div>
 
                     {/* Application Form Modal */}
-                    {isApplying && (
-                        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                            <div className="modal-dialog modal-lg">
-                                <div className="modal-content">
-                                    <div className="modal-header">
-                                        <h5 className="modal-title">Apply for {job.title}</h5>
-                                        <button
-                                            type="button"
-                                            className="btn-close"
-                                            onClick={() => setIsApplying(false)}
-                                        ></button>
-                                    </div>
-                                    <form onSubmit={handleApply}>
-                                        <div className="modal-body">
-                                            <div className="mb-3">
-                                                <label className="form-label">Cover Letter</label>
-                                                <textarea
-                                                    className="form-control"
-                                                    rows={6}
-                                                    value={formData.cover_letter}
-                                                    onChange={e => setFormData(prev => ({
-                                                        ...prev,
-                                                        cover_letter: e.target.value
-                                                    }))}
-                                                    required
-                                                    minLength={100}
-                                                    placeholder="Write a compelling cover letter explaining why you're the perfect candidate for this position..."
-                                                ></textarea>
-                                                <small className="text-muted">
-                                                    Minimum 100 characters. Be sure to highlight your relevant experience and skills.
-                                                </small>
-                                            </div>
-                                            <div className="mb-3">
-                                                <label className="form-label">Resume</label>
-                                                <input
-                                                    type="file"
-                                                    className="form-control"
-
-                                                    accept=".pdf,.doc,.docx"
-                                                    onChange={e => setFormData(prev => ({
-                                                        ...prev,
-                                                        resume: e.target.files ? e.target.files[0] : null
-                                                    }))}
-                                                    required
-                                                />
-                                                <small className="text-muted">
-                                                    Upload your resume (PDF, DOC, or DOCX format, max 2MB)
-                                                </small>
-                                            </div>
-                                        </div>
-                                        <div className="modal-footer">
-                                            <button
-                                                type="button"
-                                                className="btn btn-secondary"
-                                                onClick={() => setIsApplying(false)}
-                                            >
-                                                Cancel
-                                            </button>
-                                            <button type="submit" className="btn btn-outline-success">
-                                                Submit Application
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    <ApplicationFormModal
+                        isOpen={isApplying}
+                        onClose={() => setIsApplying(false)}
+                        onSubmit={handleApply}
+                        jobTitle={job.title}
+                        formData={formData}
+                        setFormData={setFormData}
+                    />
                 </div>
             </div>
         </div>
