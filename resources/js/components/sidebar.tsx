@@ -35,20 +35,7 @@ const Sidebar = ({ auth }: Props) => {
                                 </div>
                             </div>
                         </div>
-                        {/* Search Box */}
-                        {/* <form onSubmit={handleSearch} className="flex gap-2 justify-center">
-                                <input
-                                    type="text"
-                                    className="form-control form-control-lg w-full max-w-lg text-gray-800"
-                                    placeholder="Search jobs by title, company, or location..."
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
-                                />
-                                <button type="submit" className="btn btn-light btn-lg">
-                                    <i className="fas fa-search me-2"></i>
-                                    Search
-                                </button>
-                            </form> */}
+                       
                         <div className="row">
                             <div className="col-xl-8">
                                 <form onSubmit={handleSearch} className="bg-white p-4 rounded shadow-sm">

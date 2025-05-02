@@ -49,6 +49,22 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        // Check if user is suspended or banned
+        $user = Auth::user();
+        if ($user->status === 'suspended') {
+            Auth::logout();
+            throw ValidationException::withMessages([
+                'email' => __('Your account has been suspended. Please contact support for assistance.'),
+            ]);
+        }
+
+        if ($user->status === 'banned') {
+            Auth::logout();
+            throw ValidationException::withMessages([
+                'email' => __('Your account has been banned. Reason: ' . $user->ban_reason),
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

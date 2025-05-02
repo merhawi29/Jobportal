@@ -42,6 +42,38 @@ export default function JobSeekers() {
         }
     };
 
+    const handleBan = async (userId: number) => {
+        const reason = prompt('Please enter the ban reason:');
+        if (!reason) return;
+
+        const duration = prompt('Please enter ban duration in days (default: 30):');
+        const banDuration = duration ? parseInt(duration) : 30;
+
+        if (isNaN(banDuration) || banDuration <= 0) {
+            alert('Please enter a valid number of days');
+            return;
+        }
+
+        try {
+            await axios.post(`/admin/users/job-seekers/${userId}/ban`, { 
+                reason,
+                duration: banDuration
+            });
+            fetchJobSeekers();
+        } catch (error) {
+            setError('Failed to ban user');
+        }
+    };
+
+    const handleUnban = async (userId: number) => {
+        try {
+            await axios.post(`/admin/users/job-seekers/${userId}/unban`);
+            fetchJobSeekers();
+        } catch (error) {
+            setError('Failed to unban user');
+        }
+    };
+
     const handleDelete = async (userId: number) => {
         if (!confirm('Are you sure you want to delete this user?')) return;
         
@@ -93,32 +125,53 @@ export default function JobSeekers() {
                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                                             user.status === 'active' 
                                                 ? 'bg-green-100 text-green-800'
-                                                : 'bg-red-100 text-red-800'
+                                                : user.status === 'suspended' 
+                                                    ? 'bg-yellow-100 text-yellow-800'
+                                                    : 'bg-red-100 text-red-800'
                                         }`}>
                                             {user.status}
+                                            {user.banned_until && (
+                                                <span className="ml-1 text-xs">
+                                                    (until {new Date(user.banned_until).toLocaleDateString()})
+                                                </span>
+                                            )}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <button
+                                        <button
                                             onClick={() => window.location.href = `/admin/users/job-seekers/${user.id}/edit`}
                                             className="text-indigo-600 hover:text-indigo-900 mr-4"
                                         >
                                             Edit
                                         </button>
                                         {user.status === 'active' ? (
-                                            
-                                            <button
-                                                onClick={() => handleSuspend(user.id)}
-                                                className="text-red-600 hover:text-red-900 mr-4"
-                                            >
-                                                Suspend
-                                            </button>
-                                        ) : (
+                                            <>
+                                                <button
+                                                    onClick={() => handleSuspend(user.id)}
+                                                    className="text-yellow-600 hover:text-yellow-900 mr-4"
+                                                >
+                                                    Suspend
+                                                </button>
+                                                <button
+                                                    onClick={() => handleBan(user.id)}
+                                                    className="text-red-600 hover:text-red-900 mr-4"
+                                                >
+                                                    Ban
+                                                </button>
+                                            </>
+                                        ) : user.status === 'suspended' ? (
                                             <button
                                                 onClick={() => handleActivate(user.id)}
                                                 className="text-green-600 hover:text-green-900 mr-4"
                                             >
                                                 Activate
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={() => handleUnban(user.id)}
+                                                className="text-green-600 hover:text-green-900 mr-4"
+                                            >
+                                                Unban
                                             </button>
                                         )}
                                         <button

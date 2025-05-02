@@ -49,7 +49,7 @@ export default function AdminDashboard({ stats, error }: Props) {
 
     return (
         <AdminLayout>
-            <Head title="Admin Dashboard" />
+            <Head title="Admin Dashboard "  />
             <div className="p-6">
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-2xl font-bold">Dashboard Overview</h1>

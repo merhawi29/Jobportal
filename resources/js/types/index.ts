@@ -35,8 +35,11 @@ export interface User {
     role: string;
     status: string;
     phone?: string;
+    avatar?: string | null;
     created_at: string;
     updated_at: string;
+    banned_until?: string | null;
+    ban_reason?: string | null;
     employer_profile?: {
         company_name: string;
         company_website: string | null;
@@ -142,40 +145,28 @@ export interface JobApplication {
 }
 
 export interface Pagination<T> {
-    current_page: number;
     data: T[];
-    first_page_url: string;
-    from: number;
-    last_page: number;
-    last_page_url: string;
-    links: {
-        url: string | null;
-        label: string;
-        active: boolean;
-    }[];
-    next_page_url: string | null;
-    path: string;
+    current_page: number;
     per_page: number;
-    prev_page_url: string | null;
-    to: number;
     total: number;
+    last_page: number;
 }
 
-export interface JobAlert {
-    id: number;
-    user_id: number;
-    job_title?: string;
-    job_type?: string;
-    location?: string;
-    salary_min?: number;
-    salary_max?: number;
-    keywords?: string[];
-    notification_type: 'email' | 'push' | 'both';
-    frequency: 'immediately' | 'daily' | 'weekly';
-    is_active: boolean;
-    created_at: string;
-    updated_at: string;
-}
+// export interface JobAlert {
+//     id: number;
+//     user_id: number;
+//     job_title?: string;
+//     job_type?: string;
+//     location?: string;
+//     salary_min?: number;
+//     salary_max?: number;
+//     keywords?: string[];
+//     notification_type: 'email' | 'push' | 'both';
+//     frequency: 'immediately' | 'daily' | 'weekly';
+//     is_active: boolean;
+//     created_at: string;
+//     updated_at: string;
+// }
 
 export type PageProps<T extends Record<string, any> = Record<string, any>> = {
     auth: {

@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('interview_invitations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('job_application_id')->constrained('job_applications')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->dateTime('scheduled_at');
             $table->string('location')->nullable();
             $table->text('notes')->nullable();

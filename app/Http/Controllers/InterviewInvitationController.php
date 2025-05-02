@@ -9,6 +9,8 @@ use App\Notifications\InterviewInvitation as InterviewInvitationNotification;
 use Inertia\Inertia;
 use App\Notifications\InterviewScheduled;
 use App\Notifications\InterviewCancelled;
+use App\Services\NotificationService;
+use Illuminate\Support\Facades\Log;
 
 class InterviewInvitationController extends Controller
 {
@@ -70,8 +72,26 @@ class InterviewInvitationController extends Controller
         // Update application status
         $jobApplication->update(['status' => 'interview_scheduled']);
 
-        // Notify the applicant
-        $jobApplication->user->notify(new InterviewScheduled($interview));
+        try {
+            // First try direct email
+            $success = NotificationService::sendDirectEmail($jobApplication->user, $interview);
+            
+            if (!$success) {
+                // Fallback to notification system
+                $jobApplication->user->notify(new InterviewScheduled($interview));
+            }
+            
+            Log::info('Interview notification sent successfully', [
+                'interview_id' => $interview->id,
+                'user_id' => $jobApplication->user->id
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Failed to send interview notification', [
+                'error' => $e->getMessage(),
+                'interview_id' => $interview->id
+            ]);
+        }
 
         return redirect()->route('applications.show', $jobApplication->id)
             ->with('success', 'Interview scheduled successfully.');
@@ -109,8 +129,21 @@ class InterviewInvitationController extends Controller
 
         $interview->update($validated);
 
-        // Notify the applicant about the changes
-        $interview->job_application->user->notify(new InterviewScheduled($interview));
+        try {
+            // Try direct email first
+            $success = NotificationService::sendDirectEmail($interview->job_application->user, $interview);
+            
+            if (!$success) {
+                // Fallback to notification system
+                $interview->job_application->user->notify(new InterviewScheduled($interview));
+            }
+            
+        } catch (\Exception $e) {
+            Log::error('Failed to send interview update notification', [
+                'error' => $e->getMessage(), 
+                'interview_id' => $interview->id
+            ]);
+        }
 
         return redirect()->route('interviews.show', $interview->id)
             ->with('success', 'Interview updated successfully.');

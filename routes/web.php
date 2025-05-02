@@ -17,6 +17,9 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\VerificationController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\NotificationController;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\BlogController;
 
 Route::get('/', function () {
     return Inertia::render('Home');
@@ -27,6 +30,21 @@ Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/{job}', [JobController::class, 'show'])->name('jobs.show');
 Route::get('/companies/{user}', [EmployeeProfileController::class, 'show'])->name('companies.show');
 
+// Career Resources route
+Route::get('/career-resources', function () {
+    $careerResources = \App\Models\CareerResource::all();
+    return Inertia::render('CareerResource/Index', [
+        'careerResources' => $careerResources
+    ]);
+})->name('career-resources.index');
+
+// FAQs route
+Route::get('/faqs', function () {
+    $faqs = \App\Models\FAQ::all();
+    return Inertia::render('FAQ/Index', [
+        'faqs' => $faqs
+    ]);
+})->name('faqs.index');
 
 // Protected job routes
 Route::middleware(['auth'])->group(function () {
@@ -35,10 +53,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/jobs/{job}/edit', [JobController::class, 'edit'])->name('jobs.edit');
     Route::put('/jobs/{job}', [JobController::class, 'update'])->name('jobs.update');
     Route::delete('/jobs/{job}', [JobController::class, 'destroy'])->name('jobs.destroy');
-    Route::resource('job-alerts', JobAlertController::class);
-    Route::put('job-alerts/{alert}/toggle', [JobAlertController::class, 'toggle'])
-        ->name('job-alerts.toggle');
-    Route::post('/jobs/{job}/save', [JobController::class, 'save'])->name('jobs.save');
+    // Route::resource('job-alerts', JobAlertController::class);
+    // Route::put('job-alerts/{alert}/toggle', [JobAlertController::class, 'toggle'])
+    //     ->name('job-alerts.toggle');
+    // Route::post('/jobs/{job}/save', [JobController::class, 'save'])->name('jobs.save');
 
     // Applications
     Route::get('/applications', [JobApplicationController::class, 'index'])->name('applications.index');
@@ -52,6 +70,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/interviews/{interview}/edit', [InterviewInvitationController::class, 'edit'])->name('interviews.edit');
     Route::put('/interviews/{interview}', [InterviewInvitationController::class, 'update'])->name('interviews.update');
     Route::delete('/interviews/{interview}', [InterviewInvitationController::class, 'destroy'])->name('interviews.destroy');
+
+    // Job Alerts
+ 
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -71,9 +92,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/jobs/{job}/save', [SavedJobController::class, 'store'])->name('jobs.save');
         Route::delete('/jobs/{job}/unsave', [SavedJobController::class, 'destroy'])->name('jobs.unsave');
 
-        Route::get('/job-alerts', [JobAlertController::class, 'index'])->name('job-alerts.index');
-        Route::post('/job-alerts', [JobAlertController::class, 'store'])->name('job-alerts.store');
-        Route::delete('/job-alerts/{alert}', [JobAlertController::class, 'destroy'])->name('job-alerts.destroy');
+        // Job Alerts routes
+        // Route::get('/job-alerts', function () {
+        //     return Inertia::render('Jobseeker/notifications/index');
+        // })->name('job-alerts.index');
+        // Route::get('/job-alerts', [JobAlertController::class, 'index'])->name('job-alerts.index');
+        // Route::get('/job-alerts/create', [JobAlertController::class, 'create'])->name('job-alerts.create');
+        // Route::post('/job-alerts', [JobAlertController::class, 'store'])->name('job-alerts.store');
+        // Route::get('/job-alerts/{alert}/edit', [JobAlertController::class, 'edit'])->name('job-alerts.edit');
+        // Route::put('/job-alerts/{alert}', [JobAlertController::class, 'update'])->name('job-alerts.update');
+        // Route::put('/job-alerts/{alert}/toggle', [JobAlertController::class, 'toggle'])->name('job-alerts.toggle');
+        // Route::delete('/job-alerts/{alert}', [JobAlertController::class, 'destroy'])->name('job-alerts.destroy');
+        
+        // // Notification routes
+        // Route::post('/notifications/{id}/mark-as-read', [JobAlertController::class, 'markAsRead'])->name('job-alerts.mark-as-read');
     });
 
     // Job Seeker Profile routes
@@ -86,7 +118,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/profile/show/{id?}', [JobSeekerProfileController::class, 'show'])->name('profile.show');
         Route::get('/profile/create', [JobSeekerProfileController::class, 'create'])->name('profile.create');
         Route::post('/profile', [JobSeekerProfileController::class, 'store'])->name('profile.store');
+        Route::post('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
     });
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
 
        
 
@@ -145,6 +179,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             Route::put('/{user}', [UserController::class, 'updateJobSeeker'])->name('update');
             Route::post('/{user}/suspend', [UserController::class, 'suspendJobSeeker'])->name('suspend');
             Route::post('/{user}/activate', [UserController::class, 'activateJobSeeker'])->name('activate');
+            Route::post('/{user}/ban', [UserController::class, 'banJobSeeker'])->name('ban');
+            Route::post('/{user}/unban', [UserController::class, 'unbanJobSeeker'])->name('unban');
             Route::delete('/{user}', [UserController::class, 'deleteJobSeeker'])->name('delete');
         });
 
@@ -157,6 +193,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             Route::put('/{user}', [App\Http\Controllers\Admin\UserController::class, 'update'])->name('update');
             Route::post('/{user}/suspend', [App\Http\Controllers\Admin\UserController::class, 'suspendEmployer'])->name('suspend');
             Route::post('/{user}/activate', [App\Http\Controllers\Admin\UserController::class, 'activateEmployer'])->name('activate');
+            Route::post('/{user}/ban', [App\Http\Controllers\Admin\UserController::class, 'banEmployer'])->name('ban');
+            Route::post('/{user}/unban', [App\Http\Controllers\Admin\UserController::class, 'unbanEmployer'])->name('unban');
             Route::delete('/{user}', [App\Http\Controllers\Admin\UserController::class, 'deleteEmployer'])->name('delete');
         });
     });
@@ -228,6 +266,56 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/reports/download', [ReportController::class, 'downloadReport'])->name('admin.reports.download');
 });
 
+// Test route for debugging
+
+
+// Test route for job alerts (JSON only)
+
+
+// Debug route for job alerts
+
+// Test page for notifications
+
+// Blog routes
+Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
+Route::get('/blog/{id}', [BlogController::class, 'show'])->name('blog.show');
+
+// Admin-only diagnostic routes (add near the end of file)
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/admin/notification-debug', function () {
+        $debug = \App\Services\NotificationService::debugMailConfig();
+        return response()->json($debug);
+    });
+    
+    Route::get('/admin/test-email', function () {
+        $user = auth()->user();
+        \Illuminate\Support\Facades\Mail::raw('Test email from job portal at ' . now(), function ($message) use ($user) {
+            $message->to($user->email)
+                ->subject('Test Email from Job Portal');
+        });
+        return 'Test email sent to ' . $user->email;
+    });
+    
+    Route::get('/admin/resend-interview-notifications', function () {
+        $interviews = \App\Models\InterviewInvitation::with('job_application.user')
+            ->latest()
+            ->take(10)
+            ->get();
+            
+        $results = [];
+        foreach ($interviews as $interview) {
+            $success = \App\Services\NotificationService::resendInterviewNotification($interview);
+            $results[] = [
+                'id' => $interview->id,
+                'success' => $success,
+                'user' => $interview->job_application->user->email ?? 'no user'
+            ];
+        }
+        
+        return response()->json($results);
+    });
+});
+
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
-require __DIR__.'/moderator.php';
+require __DIR__.'/admin.php';

@@ -51,7 +51,7 @@ export default function Show({ employee, isOwnProfile = false, flash, error }: P
                         <div className="flex items-start justify-between">
                             <div className="flex items-center space-x-4">
                                 <img
-                                    src={employee.photo || '/profile-photos/default-avatar.png'}
+                                    src={employee.photo || '/assets/img/logo/testimonial.png'}
                                     alt="Company Logo"
                                     className="w-24 h-24 rounded-full object-cover"
                                 />

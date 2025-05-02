@@ -11,7 +11,7 @@ const Footer = () => {
                         <div className="mb-4">
                             <div className="mb-4">
                                 <Link href="/">
-                                    <img src="/assets/img/logo/logo2_footer.png" alt="logo" className="img-fluid" style={{ maxWidth: '160px' }} />
+                                    <img src="/assets/img/logo/super.png" alt="logo" className="img-fluid" style={{ maxWidth: '160px' }} />
                                 </Link>
                             </div>
                             <p className="text-muted mb-4">Your trusted source for finding the perfect job match. Connect with top employers and discover your next career opportunity.</p>

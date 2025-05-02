@@ -39,12 +39,12 @@ class UserController extends Controller
     {
         try {
             $employers = User::where('role', User::ROLES['employer'])
-                ->with('employerProfile')
+                ->with('employeeProfile')
                 ->latest()
                 ->get()
                 ->map(function ($user) {
                     $data = $user->toArray();
-                    if (!$user->employerProfile) {
+                    if (!$user->employeeProfile) {
                         $data['employer_profile'] = [
                             'company_name' => 'Not Set',
                             'company_website' => null,
@@ -57,7 +57,7 @@ class UserController extends Controller
                             'hire_date' => null,
                             'photo' => null,
                             'country' => null,
-                            'status' => 'pending'
+                            'status' => 'inactive'
                         ];
                     }
                     return $data;
@@ -65,11 +65,7 @@ class UserController extends Controller
 
             return response()->json($employers);
         } catch (\Exception $e) {
-            Log::error('Error fetching employers: ' . $e->getMessage(), [
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
-            ]);
+            Log::error('Error fetching employers: ' . $e->getMessage());
             return response()->json(['error' => 'Failed to fetch employers'], 500);
         }
     }
@@ -275,5 +271,125 @@ class UserController extends Controller
 
         return redirect()->route('admin.users.job-seekers.index')
             ->with('success', 'Job seeker updated successfully');
+    }
+
+    public function banJobSeeker(User $user, Request $request)
+    {
+        try {
+            if ($user->role !== User::ROLES['job_seeker']) {
+                return response()->json(['error' => 'Invalid user role'], 400);
+            }
+
+            $banDuration = $request->duration ?? 30; // Default to 30 days if not specified
+            $bannedUntil = now()->addDays($banDuration);
+
+            $user->update([
+                'status' => User::STATUSES['banned'],
+                'ban_reason' => $request->reason,
+                'banned_until' => $bannedUntil
+            ]);
+
+            // Log the action
+            activity()
+                ->performedOn($user)
+                ->causedBy(auth()->user())
+                ->withProperties([
+                    'reason' => $request->reason,
+                    'duration' => $banDuration,
+                    'banned_until' => $bannedUntil
+                ])
+                ->log('user_banned');
+
+            return response()->json(['message' => 'User banned successfully']);
+        } catch (\Exception $e) {
+            Log::error('Error banning user: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to ban user'], 500);
+        }
+    }
+
+    public function unbanJobSeeker(User $user)
+    {
+        try {
+            if ($user->role !== User::ROLES['job_seeker']) {
+                return response()->json(['error' => 'Invalid user role'], 400);
+            }
+
+            $user->update([
+                'status' => User::STATUSES['active'],
+                'ban_reason' => null,
+                'banned_until' => null
+            ]);
+
+            // Log the action
+            activity()
+                ->performedOn($user)
+                ->causedBy(auth()->user())
+                ->log('user_unbanned');
+
+            return response()->json(['message' => 'User unbanned successfully']);
+        } catch (\Exception $e) {
+            Log::error('Error unbanning user: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to unban user'], 500);
+        }
+    }
+
+    public function banEmployer(User $user, Request $request)
+    {
+        try {
+            if ($user->role !== User::ROLES['employer']) {
+                return response()->json(['error' => 'Invalid user role'], 400);
+            }
+
+            $banDuration = $request->duration ?? 30; // Default to 30 days if not specified
+            $bannedUntil = now()->addDays($banDuration);
+
+            $user->update([
+                'status' => User::STATUSES['banned'],
+                'ban_reason' => $request->reason,
+                'banned_until' => $bannedUntil
+            ]);
+
+            // Log the action
+            activity()
+                ->performedOn($user)
+                ->causedBy(auth()->user())
+                ->withProperties([
+                    'reason' => $request->reason,
+                    'duration' => $banDuration,
+                    'banned_until' => $bannedUntil
+                ])
+                ->log('employer_banned');
+
+            return response()->json(['message' => 'Employer banned successfully']);
+        } catch (\Exception $e) {
+            Log::error('Error banning employer: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to ban employer'], 500);
+        }
+    }
+
+    public function unbanEmployer(User $user)
+    {
+        try {
+            if ($user->role !== User::ROLES['employer']) {
+                return response()->json(['error' => 'Invalid user role'], 400);
+            }
+
+            $user->update([
+                'status' => User::STATUSES['active'],
+                'ban_reason' => null,
+                'banned_until' => null
+            ]);
+
+            // Log the action
+            activity()
+                ->performedOn($user)
+                ->causedBy(auth()->user())
+                ->log('employer_unbanned');
+
+            return response()->json(['message' => 'Employer unbanned successfully']);
+        } catch (\Exception $e) {
+            Log::error('Error unbanning employer: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to unban employer'], 500);
+        }
     }
 } 

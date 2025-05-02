@@ -46,14 +46,11 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'banned_until' => 'datetime',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'banned_until' => 'datetime',
+    ];
 
     const ROLES = [
         'admin' => 'admin',
@@ -99,6 +96,11 @@ class User extends Authenticatable
         return $this->hasOne(JobSeekerProfile::class);
     }
 
+    public function employerProfile()
+    {
+        return $this->hasOne(EmployeeProfile::class);
+    }
+
     public function employeeProfile()
     {
         return $this->hasOne(EmployeeProfile::class);
@@ -112,5 +114,10 @@ class User extends Authenticatable
     public function jobApplications()
     {
         return $this->hasMany(JobApplication::class);
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
     }
 }

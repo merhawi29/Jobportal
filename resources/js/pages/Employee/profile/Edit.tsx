@@ -69,11 +69,11 @@ const industries = [
 
 export default function Edit({ employee, flash, error }: Props) {
     const [imageError, setImageError] = useState(false);
-    const [imageSrc, setImageSrc] = useState(employee.photo || '/profile-photos/default-avatar.png');
+    const [imageSrc, setImageSrc] = useState(employee.photo || '/assets/img/logo/testimonial.png');
     
     useEffect(() => {
         if (!employee.photo) {
-            setImageSrc('/profile-photos/default-avatar.png');
+            setImageSrc('/assets/img/logo/testimonial.png');
             return;
         }
 
@@ -82,12 +82,12 @@ export default function Edit({ employee, flash, error }: Props) {
         
         img.onload = () => {
             setImageError(false);
-            setImageSrc(employee.photo || '/profile-photos/default-avatar.png');
+            setImageSrc(employee.photo || '/assets/img/logo/testimonial.png');
         };
         
         img.onerror = () => {
             setImageError(true);
-            setImageSrc('/profile-photos/default-avatar.png');
+            setImageSrc('/assets/img/logo/testimonial.png');
         };
         
         return () => {

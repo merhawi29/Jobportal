@@ -38,11 +38,11 @@ interface Props {
 
 export default function Show({ profile, isOwnProfile, flash, error }: Props) {
     const [imageError, setImageError] = useState(false);
-    const [imageSrc, setImageSrc] = useState(profile.profile_picture || '/profile-photos/default-avatar.png');
+    const [imageSrc, setImageSrc] = useState(profile.profile_picture || '/assets/img/logo/testimonial.png');
     
     useEffect(() => {
         if (!profile.profile_picture) {
-            setImageSrc('/profile-photos/default-avatar.png');
+            setImageSrc('/assets/img/logo/testimonial.png');
             return;
         }
 
@@ -51,12 +51,12 @@ export default function Show({ profile, isOwnProfile, flash, error }: Props) {
         
         img.onload = () => {
             setImageError(false);
-            setImageSrc(profile.profile_picture || '/profile-photos/default-avatar.png');
+            setImageSrc(profile.profile_picture || '/assets/img/logo/testimonial.png');
         };
         
         img.onerror = () => {
             setImageError(true);
-            setImageSrc('/profile-photos/default-avatar.png');
+            setImageSrc('/assets/img/logo/testimonial.png');
         };
         
         return () => {

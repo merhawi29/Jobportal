@@ -12,6 +12,8 @@ import {
     LogOut,
     Menu,
     X,
+    FilePlus,
+    ClipboardList,
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -19,17 +21,42 @@ interface AdminLayoutProps {
 }
 
 const navigation = [
-    { name: 'Dashboard', href: '/admin/', icon: LayoutDashboard },
-    { name: 'Job Seekers', href: '/admin/users/job-seekers', icon: Users },
-    { name: 'Employers', href: '/admin/users/employers', icon: Building2 },
-    { name: 'Verifications', href: '/admin/verifications', icon: CheckCircle2 },
+    { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+    { 
+        name: 'Users', 
+        href: '/admin/users', 
+        icon: Users,
+        subItems: [
+            { name: 'Job Seekers', href: '/admin/users/job-seekers', icon: Users },
+            { name: 'Employers', href: '/admin/users/employers', icon: Building2 },
+        ]
+    },
     { name: 'Jobs', href: '/admin/jobs', icon: Briefcase },
-    { name: 'Content', href: '/admin/content', icon: FileText },
-    { name: 'Settings', href: '/admin/settings', icon: Settings },
+    { name: 'Applications', href: '/admin/applications', icon: ClipboardList },
+    { name: 'Verifications', href: '/admin/verifications', icon: CheckCircle2 },
+    { 
+        name: 'Content', 
+        href: '/admin/content', 
+        icon: FileText,
+        subItems: [
+            { name: 'Create Blog Post', href: '/admin/content/blog_post/create', icon: FilePlus },
+            { name: 'Create Career Resource', href: '/admin/content/career_resource/create', icon: FilePlus },
+            { name: 'Create FAQ', href: '/admin/content/faq/create', icon: FilePlus },
+        ]
+    },
+    { name: 'Reports', href: '/admin/reports/download', icon: FileText },
 ];
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
+
+    const toggleSubItems = (name: string) => {
+        setExpandedItems(prev => ({
+            ...prev,
+            [name]: !prev[name]
+        }));
+    };
 
     return (
         <div className="min-h-screen bg-gray-100">
@@ -98,26 +125,55 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                                 {navigation.map((item) => {
                                     const isActive = window.location.pathname === item.href;
                                     return (
-                                        <Link
-                                            key={item.name}
-                                            href={item.href}
-                                            onClick={() => setSidebarOpen(false)}
-                                            className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                                                isActive
-                                                    ? 'bg-gray-100 text-gray-900'
-                                                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                                            }`}
-                                        >
-                                            <item.icon
-                                                className={`mr-3 h-6 w-6 flex-shrink-0 ${
+                                        <div key={item.name}>
+                                            <Link
+                                                href={item.href}
+                                                onClick={() => {
+                                                    setSidebarOpen(false);
+                                                    if (item.subItems) {
+                                                        toggleSubItems(item.name);
+                                                    }
+                                                }}
+                                                className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
                                                     isActive
-                                                        ? 'text-gray-500'
-                                                        : 'text-gray-400 group-hover:text-gray-500'
+                                                        ? 'bg-gray-100 text-gray-900'
+                                                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                                                 }`}
-                                                aria-hidden="true"
-                                            />
-                                            {item.name}
-                                        </Link>
+                                            >
+                                                <item.icon
+                                                    className={`mr-3 h-6 w-6 flex-shrink-0 ${
+                                                        isActive
+                                                            ? 'text-gray-500'
+                                                            : 'text-gray-400 group-hover:text-gray-500'
+                                                    }`}
+                                                    aria-hidden="true"
+                                                />
+                                                {item.name}
+                                                {item.subItems && (
+                                                    <span className="ml-auto">
+                                                        {expandedItems[item.name] ? '▼' : '▶'}
+                                                    </span>
+                                                )}
+                                            </Link>
+                                            {item.subItems && expandedItems[item.name] && (
+                                                <div className="ml-4 space-y-1">
+                                                    {item.subItems.map((subItem) => (
+                                                        <Link
+                                                            key={subItem.name}
+                                                            href={subItem.href}
+                                                            onClick={() => setSidebarOpen(false)}
+                                                            className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                                        >
+                                                            <subItem.icon
+                                                                className="mr-3 h-5 w-5 flex-shrink-0 text-gray-400 group-hover:text-gray-500"
+                                                                aria-hidden="true"
+                                                            />
+                                                            {subItem.name}
+                                                        </Link>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
                                     );
                                 })}
                             </nav>

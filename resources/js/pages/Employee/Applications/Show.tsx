@@ -188,7 +188,7 @@ export default function Show({ application }: Props) {
                             ></textarea>
                         </div>
 
-                        <button type="submit" className="btn btn-primary">
+                        <button type="submit" className="btn btn-success">
                             {notificationForm.scheduleInterview ? 'Schedule Interview' : 'Send Notification'}
                         </button>
                     </form>

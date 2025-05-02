@@ -55,7 +55,7 @@ const industries = [
 ];
 
 export default function Create({ flash, error }: Props) {
-    const [imageSrc, setImageSrc] = useState('/profile-photos/default-avatar.png');
+    const [imageSrc, setImageSrc] = useState('/assets/img/logo/testimonial.png');
     
     const { data, setData, post, processing, errors, progress } = useForm<EmployerProfileForm>({
         name: '',

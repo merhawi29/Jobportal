@@ -64,11 +64,11 @@ interface JobSeekerProfileForm {
 
 export default function Edit({ profile, flash, error }: Props) {
     const [imageError, setImageError] = useState(false);
-    const [imageSrc, setImageSrc] = useState(profile.profile_picture || '/profile-photos/default-avatar.png');
+    const [imageSrc, setImageSrc] = useState(profile.profile_picture || '/assets/img/logo/testimonial.png');
     
     useEffect(() => {
         if (!profile.profile_picture) {
-            setImageSrc('/profile-photos/default-avatar.png');
+            setImageSrc('/assets/img/logo/testimonial.png');
             return;
         }
 
@@ -77,12 +77,12 @@ export default function Edit({ profile, flash, error }: Props) {
         
         img.onload = () => {
             setImageError(false);
-            setImageSrc(profile.profile_picture || '/profile-photos/default-avatar.png');
+            setImageSrc(profile.profile_picture || '/assets/img/logo/testimonial.png');
         };
         
         img.onerror = () => {
             setImageError(true);
-            setImageSrc('/profile-photos/default-avatar.png');
+            setImageSrc('/assets/img/logo/testimonial.png');
         };
         
         return () => {
@@ -225,7 +225,7 @@ export default function Edit({ profile, flash, error }: Props) {
                             {profile.resume && (
                                 <div className="mb-2">
                                     <a
-                                        href={profile.resume || '/default-avatar.png'}
+                                        href={profile.resume || '/assets/img/logo/testimonial.png'}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="text-blue-600 hover:underline"
