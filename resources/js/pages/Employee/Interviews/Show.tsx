@@ -1,5 +1,6 @@
 import React from 'react';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface Interview {
     id: number;
@@ -18,6 +19,7 @@ interface Interview {
         job: {
             title: string;
             company: string;
+            user_id: number;
         };
     };
 }
@@ -27,6 +29,12 @@ interface Props {
 }
 
 export default function Show({ interview }: Props) {
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
+    const { auth } = usePage().props as any;
+    const isEmployer = auth?.user?.id === interview.job_application.job.user_id;
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
     if (!interview) {
         return (
             <div className="container py-4">
@@ -169,6 +177,33 @@ export default function Show({ interview }: Props) {
                                         </button>
                                     </div>
                                 </div>
+
+                                {/* Add test email button */}
+                                {isEmployer && (
+                                    <div className="mt-4 border-t pt-4">
+                                        <h3 className={`font-medium text-lg mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                            Email Testing
+                                        </h3>
+                                        <p className={`text-sm mb-3 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                                            Use this to test if emails are being sent correctly to the applicant.
+                                        </p>
+                                        <form action={route('interviews.test-email', interview.id)} method="POST">
+                                            <input type="hidden" name="_token" value={csrfToken} />
+                                            <button 
+                                                type="submit"
+                                                className={`inline-flex items-center px-4 py-2 border rounded-md font-semibold text-xs 
+                                                    ${isDark 
+                                                        ? 'bg-indigo-700 hover:bg-indigo-600 border-indigo-800 text-white' 
+                                                        : 'bg-indigo-600 hover:bg-indigo-500 border-indigo-700 text-white'}`}
+                                            >
+                                                Send Test Email
+                                            </button>
+                                            <span className={`ml-2 text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                                This will send a test email to {interview.job_application.user.email}
+                                            </span>
+                                        </form>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

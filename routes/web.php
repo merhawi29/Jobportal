@@ -68,8 +68,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/applications/{jobApplication}/interviews', [InterviewInvitationController::class, 'store'])->name('interviews.store');
     Route::get('/interviews/{interview}', [InterviewInvitationController::class, 'show'])->name('interviews.show');
     Route::get('/interviews/{interview}/edit', [InterviewInvitationController::class, 'edit'])->name('interviews.edit');
-    Route::put('/interviews/{interview}', [InterviewInvitationController::class, 'update'])->name('interviews.update');
+    Route::patch('/interviews/{interview}', [InterviewInvitationController::class, 'update'])->name('interviews.update');
     Route::delete('/interviews/{interview}', [InterviewInvitationController::class, 'destroy'])->name('interviews.destroy');
+    Route::post('/interviews/{interview}/test-email', [InterviewInvitationController::class, 'testEmail'])->name('interviews.test-email');
 
     // Job Alerts
  

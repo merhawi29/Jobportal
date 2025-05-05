@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\InterviewInvitation;
 use App\Models\JobApplication;
 use Illuminate\Http\Request;
-use App\Notifications\InterviewInvitation as InterviewInvitationNotification;
+use App\Notifications\InterviewNotification;
 use Inertia\Inertia;
 use App\Notifications\InterviewScheduled;
 use App\Notifications\InterviewCancelled;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class InterviewInvitationController extends Controller
 {
@@ -73,17 +74,13 @@ class InterviewInvitationController extends Controller
         $jobApplication->update(['status' => 'interview_scheduled']);
 
         try {
-            // First try direct email
-            $success = NotificationService::sendDirectEmail($jobApplication->user, $interview);
-            
-            if (!$success) {
-                // Fallback to notification system
-                $jobApplication->user->notify(new InterviewScheduled($interview));
-            }
+            // Send notification using Laravel's notification system
+            $jobApplication->user->notify(new InterviewScheduled($interview));
             
             Log::info('Interview notification sent successfully', [
                 'interview_id' => $interview->id,
-                'user_id' => $jobApplication->user->id
+                'user_id' => $jobApplication->user->id,
+                'email' => $jobApplication->user->email
             ]);
             
         } catch (\Exception $e) {
@@ -130,13 +127,14 @@ class InterviewInvitationController extends Controller
         $interview->update($validated);
 
         try {
-            // Try direct email first
-            $success = NotificationService::sendDirectEmail($interview->job_application->user, $interview);
+            // Send notification using Laravel's notification system
+            $interview->job_application->user->notify(new InterviewScheduled($interview));
             
-            if (!$success) {
-                // Fallback to notification system
-                $interview->job_application->user->notify(new InterviewScheduled($interview));
-            }
+            Log::info('Interview update notification sent successfully', [
+                'interview_id' => $interview->id,
+                'user_id' => $interview->job_application->user->id,
+                'email' => $interview->job_application->user->email
+            ]);
             
         } catch (\Exception $e) {
             Log::error('Failed to send interview update notification', [
@@ -192,10 +190,36 @@ class InterviewInvitationController extends Controller
             ])
         ]);
     }
-
     
-    
-
-    
-    
+    public function testEmail(InterviewInvitation $interview)
+    {
+        // Verify the authenticated user owns the job
+        if ($interview->job_application->job->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+        
+        try {
+            // Get email configuration for debugging
+            $mailConfig = NotificationService::debugMailConfig();
+            
+            // Test direct mail sending
+            $to = $interview->job_application->user->email;
+            $subject = "Test Email - Interview for " . $interview->job_application->job->title;
+            
+            Mail::raw("This is a test email for your interview scheduled on " . 
+                $interview->scheduled_at->format('F j, Y g:i A') . ". If you received this, email is working correctly.", 
+                function($message) use ($to, $subject) {
+                    $message->to($to)->subject($subject);
+                }
+            );
+            
+            return back()->with('success', 'Test email sent successfully to ' . $to);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to send test email: ' . $e->getMessage())
+                ->with('details', [
+                    'mail_config' => NotificationService::debugMailConfig(),
+                    'error_trace' => $e->getTraceAsString(),
+                ]);
+        }
+    }
 } 

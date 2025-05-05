@@ -28,7 +28,7 @@ class NotificationService
                 return false;
             }
             
-            // Force notification (bypass queue)
+            // Send notification
             $notification = new InterviewScheduled($invitation);
             $user->notify($notification);
             
@@ -44,42 +44,6 @@ class NotificationService
                 'invitation_id' => $invitation->id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
-            ]);
-            
-            return false;
-        }
-    }
-    
-    /**
-     * Send direct email bypassing queue
-     * 
-     * @param User $user
-     * @param InterviewInvitation $invitation
-     * @return bool
-     */
-    public static function sendDirectEmail(User $user, InterviewInvitation $invitation): bool
-    {
-        try {
-            $notification = new InterviewScheduled($invitation);
-            $mailMessage = $notification->toMail($user);
-            
-            // Send directly using Mail facade
-            Mail::send([], [], function ($message) use ($mailMessage, $user) {
-                $message->to($user->email)
-                    ->subject($mailMessage->subject)
-                    ->html($mailMessage->render());
-            });
-            
-            Log::info('Direct email sent successfully', [
-                'user_id' => $user->id,
-                'email' => $user->email,
-            ]);
-            
-            return true;
-        } catch (\Exception $e) {
-            Log::error('Failed to send direct email', [
-                'user_id' => $user->id,
-                'error' => $e->getMessage()
             ]);
             
             return false;
@@ -124,5 +88,36 @@ class NotificationService
             'pending_jobs' => DB::table('jobs')->count(),
             'failed_jobs' => DB::table('failed_jobs')->count(),
         ];
+    }
+    
+    /**
+     * Test email connection
+     * 
+     * @param string $email
+     * @return array
+     */
+    public static function testEmailConnection(string $email): array
+    {
+        try {
+            // Send a test email
+            Mail::raw('This is a test email from your Job Portal application to verify email functionality.', function ($message) use ($email) {
+                $message->to($email)
+                        ->subject('Test Email from Job Portal');
+            });
+            
+            return [
+                'success' => true,
+                'message' => 'Test email sent successfully',
+                'config' => self::debugMailConfig(),
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Failed to send test email: ' . $e->getMessage(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'config' => self::debugMailConfig(),
+            ];
+        }
     }
 } 
