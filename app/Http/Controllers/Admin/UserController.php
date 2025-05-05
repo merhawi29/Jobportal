@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -180,7 +181,7 @@ class UserController extends Controller
                     'jobSeeker' => $userData
                 ]);
             } elseif ($user->role === 'employer') {
-                $userData['employer_profile'] = $user->employerProfile;
+                $userData['employer_profile'] = $user->employeeProfile;
                 return Inertia::render('Admin/Users/Employers/Edit', [
                     'employer' => $userData
                 ]);
@@ -223,7 +224,7 @@ class UserController extends Controller
                 ]);
 
                 // Update or create employer profile
-                $user->employerProfile()->updateOrCreate(
+                $user->employeeProfile()->updateOrCreate(
                     ['user_id' => $user->id],
                     $employerData
                 );
@@ -231,7 +232,7 @@ class UserController extends Controller
 
             return response()->json([
                 'message' => 'User updated successfully',
-                'user' => $user->load('employerProfile')
+                'user' => $user->load('employeeProfile')
             ]);
         } catch (\Exception $e) {
             Log::error('Error updating user: ' . $e->getMessage(), [
@@ -390,6 +391,188 @@ class UserController extends Controller
         } catch (\Exception $e) {
             Log::error('Error unbanning employer: ' . $e->getMessage());
             return response()->json(['error' => 'Failed to unban employer'], 500);
+        }
+    }
+
+    public function createJobSeeker()
+    {
+        try {
+            return Inertia::render('Admin/Users/JobSeekers/Create');
+        } catch (\Exception $e) {
+            Log::error('Error loading create job seeker page: ' . $e->getMessage());
+            return back()->with('error', 'Failed to load create job seeker page');
+        }
+    }
+
+    public function storeJobSeeker(Request $request)
+    {
+        try {
+            // Validate request data
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email',
+                'password' => 'required|min:8|confirmed',
+                'phone' => 'nullable|string|max:20',
+            ]);
+
+            // Create the user
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'phone' => $validated['phone'] ?? null,
+                'role' => User::ROLES['job_seeker'],
+                'status' => User::STATUSES['active']
+            ]);
+
+            // Create job seeker profile
+            $user->jobSeekerProfile()->create([
+                'skills' => json_encode([]),
+                'experience' => json_encode([]),
+                'education' => json_encode([]),
+                'location' => '',
+                'about' => '',
+                'linkedin_url' => null,
+                'github_url' => null,
+                'is_public' => true,
+                'show_email' => true,
+                'show_phone' => true,
+                'show_education' => true,
+                'show_experience' => true,
+                'show_skills' => true,
+                'show_social_links' => true,
+                'show_resume' => true
+            ]);
+
+            return response()->json([
+                'message' => 'Job seeker created successfully',
+                'user' => $user
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error creating job seeker: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to create job seeker: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function createEmployer()
+    {
+        try {
+            return Inertia::render('Admin/Users/Employers/Create');
+        } catch (\Exception $e) {
+            Log::error('Error loading create employer page: ' . $e->getMessage());
+            return back()->with('error', 'Failed to load create employer page');
+        }
+    }
+
+    public function storeEmployer(Request $request)
+    {
+        try {
+            // Validate request data
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email',
+                'password' => 'required|min:8|confirmed',
+                'phone' => 'nullable|string|max:20',
+                'company_name' => 'required|string|max:255',
+                'company_website' => 'nullable|url',
+                'industry' => 'required|string|max:255',
+                'company_size' => 'required|string',
+                'company_description' => 'required|string',
+                'location' => 'nullable|string|max:255',
+                'country' => 'nullable|string|max:255',
+            ]);
+
+            // Create the user
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'phone' => $validated['phone'] ?? null,
+                'role' => User::ROLES['employer'],
+                'status' => User::STATUSES['active']
+            ]);
+
+            // Log for debugging
+            Log::info('User created successfully, creating employer profile next', [
+                'user_id' => $user->id,
+                'email' => $user->email
+            ]);
+
+            try {
+                // Create employer profile - use employeeProfile instead of employerProfile
+                $employerProfile = $user->employeeProfile()->create([
+                    'name' => $validated['name'],
+                    'email' => $validated['email'],
+                    'phone' => $validated['phone'] ?? null,
+                    'company_name' => $validated['company_name'],
+                    'company_website' => $validated['company_website'] ?? null,
+                    'industry' => $validated['industry'],
+                    'company_size' => $validated['company_size'],
+                    'company_description' => $validated['company_description'],
+                    'location' => $validated['location'] ?? '',
+                    'country' => $validated['country'] ?? null,
+                    'status' => 'verified' // Admin-created employers are automatically verified
+                ]);
+                
+                Log::info('Employer profile created successfully', [
+                    'user_id' => $user->id,
+                    'profile_id' => $employerProfile->id
+                ]);
+
+                return response()->json([
+                    'message' => 'Employer created successfully',
+                    'user' => $user->load('employeeProfile')
+                ]);
+            } catch (\Exception $e) {
+                // If profile creation fails, delete the user to prevent orphaned records
+                $user->delete();
+                Log::error('Error creating employer profile: ' . $e->getMessage(), [
+                    'user_id' => $user->id,
+                    'trace' => $e->getTraceAsString()
+                ]);
+                throw new \Exception('Error creating employer profile: ' . $e->getMessage());
+            }
+        } catch (\Exception $e) {
+            Log::error('Error creating employer: ' . $e->getMessage(), [
+                'request_data' => $request->except(['password', 'password_confirmation']),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['error' => 'Failed to create employer: ' . $e->getMessage()], 500);
+        }
+    }
+
+    // Add a new method for role assignment
+    public function assignRole(Request $request, User $user)
+    {
+        try {
+            // Validate role
+            $validated = $request->validate([
+                'role' => 'required|in:' . implode(',', User::ROLES),
+            ]);
+
+            // Update user role
+            $user->update([
+                'role' => $validated['role']
+            ]);
+
+            // Log action
+            activity()
+                ->performedOn($user)
+                ->causedBy(auth()->user())
+                ->withProperties(['new_role' => $validated['role']])
+                ->log('role_assigned');
+
+            return response()->json([
+                'message' => 'User role updated successfully', 
+                'user' => $user
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error assigning role: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+                'request_data' => $request->all(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['error' => 'Failed to assign role: ' . $e->getMessage()], 500);
         }
     }
 } 

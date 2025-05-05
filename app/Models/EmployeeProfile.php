@@ -21,6 +21,15 @@ class EmployeeProfile extends Model
         'industry',
         'company_description',
         'location',
+        'country',
+        'status',
+        'position',
+        'department',
+        'hire_date'
+    ];
+
+    protected $casts = [
+        'hire_date' => 'datetime',
     ];
 
     public function user()

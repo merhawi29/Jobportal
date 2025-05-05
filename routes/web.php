@@ -175,6 +175,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         // Job Seeker Management
         Route::prefix('job-seekers')->name('job-seekers.')->group(function () {
             Route::get('/', [UserController::class, 'jobSeekersIndex'])->name('index');
+            Route::get('/create', [UserController::class, 'createJobSeeker'])->name('create');
             Route::get('/{user}/edit', [UserController::class, 'editJobSeeker'])->name('edit');
             Route::put('/{user}', [UserController::class, 'updateJobSeeker'])->name('update');
             Route::post('/{user}/suspend', [UserController::class, 'suspendJobSeeker'])->name('suspend');
@@ -189,6 +190,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             Route::get('/', function () {
                 return Inertia::render('Admin/Users/Employers/Index');
             })->name('index');
+            Route::get('/create', [App\Http\Controllers\Admin\UserController::class, 'createEmployer'])->name('create');
             Route::get('/{user}/edit', [App\Http\Controllers\Admin\UserController::class, 'edit'])->name('edit');
             Route::put('/{user}', [App\Http\Controllers\Admin\UserController::class, 'update'])->name('update');
             Route::post('/{user}/suspend', [App\Http\Controllers\Admin\UserController::class, 'suspendEmployer'])->name('suspend');
@@ -202,6 +204,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // Job Seeker API Routes
     Route::prefix('api/users/job-seekers')->group(function () {
         Route::get('/', [App\Http\Controllers\Admin\UserController::class, 'jobSeekers']);
+        Route::post('/', [App\Http\Controllers\Admin\UserController::class, 'storeJobSeeker']);
         Route::post('/{user}/suspend', [App\Http\Controllers\Admin\UserController::class, 'suspendJobSeeker']);
         Route::post('/{user}/activate', [App\Http\Controllers\Admin\UserController::class, 'activateJobSeeker']);
         Route::delete('/{user}', [App\Http\Controllers\Admin\UserController::class, 'deleteJobSeeker']);
@@ -210,6 +213,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // Employer API Routes
     Route::prefix('api/users/employers')->group(function () {
         Route::get('/', [App\Http\Controllers\Admin\UserController::class, 'employers']);
+        Route::post('/', [App\Http\Controllers\Admin\UserController::class, 'storeEmployer']);
         Route::post('/{user}/suspend', [App\Http\Controllers\Admin\UserController::class, 'suspendEmployer']);
         Route::post('/{user}/activate', [App\Http\Controllers\Admin\UserController::class, 'activateEmployer']);
         Route::delete('/{user}', [App\Http\Controllers\Admin\UserController::class, 'deleteEmployer']);
@@ -319,3 +323,4 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
 require __DIR__.'/admin.php';
+require __DIR__.'/moderator.php';

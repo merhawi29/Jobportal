@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\EmployeeProfile;
 use App\Models\JobSeekerProfile;
+use App\Notifications\WelcomeMessage;
 use Illuminate\Auth\Events\Registered;
     use Illuminate\Http\RedirectResponse;
     use Illuminate\Http\Request;
@@ -80,6 +81,9 @@ use Illuminate\Auth\Events\Registered;
                     'show_resume' => true
                 ]);
             }
+
+            // Send welcome notification
+            $user->notify(new WelcomeMessage());
 
             event(new Registered($user));
 

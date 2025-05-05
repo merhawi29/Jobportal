@@ -40,7 +40,7 @@ class EnsureProfileIsComplete
                     ->with('warning', 'Please complete your profile to access all features.');
             }
         } elseif ($user->role === 'employer') {
-            $profile = $user->employerProfile;
+            $profile = $user->employeeProfile;
             
             // Check if essential profile fields are filled for employer
             if (!$profile || 

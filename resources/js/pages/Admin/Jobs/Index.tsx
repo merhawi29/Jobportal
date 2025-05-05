@@ -3,8 +3,11 @@ import { Head } from '@inertiajs/react';
 import AdminLayout from '@/layouts/admin-layout';
 import type { Job } from '@/types/index';
 import axios from 'axios';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function Jobs() {
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
     const [jobs, setJobs] = useState<Job[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -60,70 +63,79 @@ export default function Jobs() {
         window.location.href = `/admin/jobs/${jobId}/edit`;
     };
 
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div className="text-red-500">{error}</div>;
+    if (loading) return (
+        <AdminLayout>
+            <div className={`p-6 ${isDark ? 'text-white' : 'text-gray-800'}`}>Loading...</div>
+        </AdminLayout>
+    );
+    
+    if (error) return (
+        <AdminLayout>
+            <div className="text-red-500 p-6">{error}</div>
+        </AdminLayout>
+    );
 
     return (
         <AdminLayout>
             <Head title="Job Management" />
             <div className="p-6">
-                <h1 className="text-2xl font-bold mb-6">Job Management</h1>
+                <h1 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Job Management</h1>
                 
-                <div className="bg-white rounded-lg shadow overflow-hidden">
+                <div className={`rounded-lg shadow overflow-hidden ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
                     <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                        <thead className={`${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
                                     Title
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
                                     Company
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
                                     Location
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
                                     Status
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
                                     Posted By
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
                                     Actions
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className={`${isDark ? 'bg-gray-800' : 'bg-white'} divide-y ${isDark ? 'divide-gray-700' : 'divide-gray-200'}`}>
                             {jobs.map((job) => (
-                                <tr key={job.id}>
+                                <tr key={job.id} className={isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm font-medium text-gray-900">
+                                        <div className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
                                             {job.title}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm text-gray-500">
+                                        <div className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
                                             {job.company}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm text-gray-500">
+                                        <div className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
                                             {job.location}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                                             job.status === 'approved'
-                                                ? 'bg-green-100 text-green-800'
+                                                ? isDark ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-800'
                                                 : job.status === 'rejected'
-                                                ? 'bg-red-100 text-red-800'
-                                                : 'bg-yellow-100 text-yellow-800'
+                                                ? isDark ? 'bg-red-900 text-red-300' : 'bg-red-100 text-red-800'
+                                                : isDark ? 'bg-yellow-900 text-yellow-300' : 'bg-yellow-100 text-yellow-800'
                                         }`}>
                                             {job.status}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm text-gray-500">
+                                        <div className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
                                             {job.user.name}
                                         </div>
                                     </td>
@@ -132,13 +144,13 @@ export default function Jobs() {
                                             <>
                                                 <button
                                                     onClick={() => handleApprove(job.id)}
-                                                    className="text-green-600 hover:text-green-900"
+                                                    className={`${isDark ? 'text-green-400 hover:text-green-300' : 'text-green-600 hover:text-green-900'}`}
                                                 >
                                                     Approve
                                                 </button>
                                                 <button
                                                     onClick={() => handleReject(job.id)}
-                                                    className="text-red-600 hover:text-red-900"
+                                                    className={`${isDark ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-900'}`}
                                                 >
                                                     Reject
                                                 </button>
@@ -146,13 +158,13 @@ export default function Jobs() {
                                         )}
                                         <button
                                             onClick={() => handleEdit(job.id)}
-                                            className="text-indigo-600 hover:text-indigo-900"
+                                            className={`${isDark ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-600 hover:text-indigo-900'}`}
                                         >
                                             Edit
                                         </button>
                                         <button
                                             onClick={() => handleDelete(job.id)}
-                                            className="text-red-600 hover:text-red-900"
+                                            className={`${isDark ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-900'}`}
                                         >
                                             Delete
                                         </button>

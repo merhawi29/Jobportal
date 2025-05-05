@@ -38,6 +38,7 @@ Route::middleware(['auth'])->name('admin.')->group(function () {
             Route::post('/{user}/ban', [UserController::class, 'banJobSeeker'])->name('ban');
             Route::post('/{user}/unban', [UserController::class, 'unbanJobSeeker'])->name('unban');
             Route::delete('/{user}', [UserController::class, 'deleteJobSeeker'])->name('delete');
+            Route::post('/{user}/role', [UserController::class, 'assignRole'])->name('assign-role');
         });
 
         // Employer Management
@@ -52,6 +53,7 @@ Route::middleware(['auth'])->name('admin.')->group(function () {
             Route::post('/{user}/ban', [UserController::class, 'banEmployer'])->name('ban');
             Route::post('/{user}/unban', [UserController::class, 'unbanEmployer'])->name('unban');
             Route::delete('/{user}', [UserController::class, 'deleteEmployer'])->name('delete');
+            Route::post('/{user}/role', [UserController::class, 'assignRole'])->name('assign-role');
         });
     });
 

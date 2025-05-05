@@ -16,17 +16,17 @@ return [
         'MAIL_MAILER' => 'smtp',
         
         // SMTP Settings (for SMTP driver)
-        'MAIL_HOST' => 'smtp.example.com',
-        'MAIL_PORT' => '587',
+        'MAIL_HOST' => 'smtp.gmail.com',
+        'MAIL_PORT' => '465',
         'MAIL_USERNAME' => 'merhawinguse29@gmail.com',
-        'MAIL_PASSWORD' => 'MBSkokob29@',
-        'MAIL_ENCRYPTION' => 'tls',
+        'MAIL_PASSWORD' => 'qyarslxdoygmoila',
+        'MAIL_ENCRYPTION' => 'ssl',
         
         // "From" Address Settings
         'MAIL_FROM_ADDRESS' => 'merhawinguse29@gmail.com',
         'MAIL_FROM_NAME' => '${APP_NAME}',
 
-        
+    
         // Queue Settings
         'QUEUE_CONNECTION' => 'database', // Or 'sync' for direct sending (no queue)
     ],

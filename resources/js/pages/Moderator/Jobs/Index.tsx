@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import ModeratorLayout from '@/layouts/ModeratorLayout';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface Job {
     id: number;
@@ -30,6 +31,8 @@ interface Props {
 }
 
 export default function Index({ jobs, filters = {} }: Props) {
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
     const [statusFilter, setStatusFilter] = useState(filters.status || 'all');
     const [moderationFilter, setModerationFilter] = useState(filters.moderation_status || 'all');
@@ -49,14 +52,14 @@ export default function Index({ jobs, filters = {} }: Props) {
         <ModeratorLayout>
             <Head title="Manage Jobs" />
 
-            <div className="container-fluid py-4">
+            <div className={`container-fluid py-4 ${isDark ? 'text-white' : ''}`}>
                 <div className="d-flex justify-content-between align-items-center mb-4">
-                    <h2 className="h4 mb-0">Manage Jobs</h2>
+                    <h2 className={`h4 mb-0 ${isDark ? 'text-white' : ''}`}>Manage Jobs</h2>
                     <div className="d-flex gap-2">
                         <form onSubmit={handleSearch} className="d-flex gap-2">
                             <input
                                 type="text"
-                                className="form-control"
+                                className={`form-control ${isDark ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
                                 placeholder="Search jobs..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -68,69 +71,69 @@ export default function Index({ jobs, filters = {} }: Props) {
                     </div>
                 </div>
 
-                <div className="card mb-4">
+                <div className={`card mb-4 ${isDark ? 'bg-gray-800 border-gray-700 text-white' : ''}`}>
                     <div className="card-body">
                         <div className="row g-3">
                             <div className="col-md-3">
-                                <label className="form-label">Job Status</label>
+                                <label className={`form-label ${isDark ? 'text-white' : ''}`}>Job Status</label>
                                 <select
-                                    className="form-select"
+                                    className={`form-select ${isDark ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
                                     value={statusFilter}
                                     onChange={(e) => handleFilterChange('status', e.target.value)}
                                 >
-                                    <option value="all">All Status</option>
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
-                                    <option value="closed">Closed</option>
+                                    <option className={isDark ? 'text-white bg-gray-700' : ''} value="all">All Status</option>
+                                    <option className={isDark ? 'text-white bg-gray-700' : ''} value="active">Active</option>
+                                    <option className={isDark ? 'text-white bg-gray-700' : ''} value="inactive">Inactive</option>
+                                    <option className={isDark ? 'text-white bg-gray-700' : ''} value="closed">Closed</option>
                                 </select>
                             </div>
                             <div className="col-md-3">
-                                <label className="form-label">Moderation Status</label>
+                                <label className={`form-label ${isDark ? 'text-white' : ''}`}>Moderation Status</label>
                                 <select
-                                    className="form-select"
+                                    className={`form-select ${isDark ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
                                     value={moderationFilter}
                                     onChange={(e) => handleFilterChange('moderation_status', e.target.value)}
                                 >
-                                    <option value="all">All Moderation</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="approved">Approved</option>
-                                    <option value="rejected">Rejected</option>
+                                    <option className={isDark ? 'text-white bg-gray-700' : ''} value="all">All Moderation</option>
+                                    <option className={isDark ? 'text-white bg-gray-700' : ''} value="pending">Pending</option>
+                                    <option className={isDark ? 'text-white bg-gray-700' : ''} value="approved">Approved</option>
+                                    <option className={isDark ? 'text-white bg-gray-700' : ''} value="rejected">Rejected</option>
                                 </select>
                             </div>
                             <div className="col-md-3">
-                                <label className="form-label">Job Type</label>
+                                <label className={`form-label ${isDark ? 'text-white' : ''}`}>Job Type</label>
                                 <select
-                                    className="form-select"
+                                    className={`form-select ${isDark ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
                                     onChange={(e) => handleFilterChange('type', e.target.value)}
                                 >
-                                    <option value="">All Types</option>
-                                    <option value="full_time">Full Time</option>
-                                    <option value="part_time">Part Time</option>
-                                    <option value="contract">Contract</option>
-                                    <option value="freelance">Freelance</option>
-                                    <option value="internship">Internship</option>
+                                    <option className={isDark ? 'text-white bg-gray-700' : ''} value="">All Types</option>
+                                    <option className={isDark ? 'text-white bg-gray-700' : ''} value="full_time">Full Time</option>
+                                    <option className={isDark ? 'text-white bg-gray-700' : ''} value="part_time">Part Time</option>
+                                    <option className={isDark ? 'text-white bg-gray-700' : ''} value="contract">Contract</option>
+                                    <option className={isDark ? 'text-white bg-gray-700' : ''} value="freelance">Freelance</option>
+                                    <option className={isDark ? 'text-white bg-gray-700' : ''} value="internship">Internship</option>
                                 </select>
                             </div>
                             <div className="col-md-3">
-                                <label className="form-label">Sort By</label>
+                                <label className={`form-label ${isDark ? 'text-white' : ''}`}>Sort By</label>
                                 <select
-                                    className="form-select"
+                                    className={`form-select ${isDark ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
                                     onChange={(e) => handleFilterChange('sort', e.target.value)}
                                 >
-                                    <option value="latest">Latest First</option>
-                                    <option value="oldest">Oldest First</option>
-                                    <option value="title">Title (A-Z)</option>
+                                    <option className={isDark ? 'text-white bg-gray-700' : ''} value="latest">Latest First</option>
+                                    <option className={isDark ? 'text-white bg-gray-700' : ''} value="oldest">Oldest First</option>
+                                    <option className={isDark ? 'text-white bg-gray-700' : ''} value="title">Title (A-Z)</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="card">
+                <div className={`card ${isDark ? 'bg-gray-800 border-gray-700 text-white' : ''}`}>
                     <div className="card-body">
                         <div className="table-responsive">
-                            <table className="table table-hover">
-                                <thead>
+                            <table className={`table table-hover ${isDark ? 'table-dark' : ''}`}>
+                                <thead className={isDark ? 'text-white bg-gray-800' : ''}>
                                     <tr>
                                         <th>Job Title</th>
                                         <th>Company</th>
@@ -145,9 +148,9 @@ export default function Index({ jobs, filters = {} }: Props) {
                                 </thead>
                                 <tbody>
                                     {jobs.data.map((job) => (
-                                        <tr key={job.id}>
+                                        <tr key={job.id} className={isDark ? 'text-white' : ''}>
                                             <td>
-                                                <Link href={`/moderator/jobs/${job.id}/edit`} className="text-decoration-none">
+                                                <Link href={`/moderator/jobs/${job.id}/edit`} className={`text-decoration-none ${isDark ? 'text-blue-400' : ''}`}>
                                                     {job.title}
                                                 </Link>
                                             </td>
@@ -219,7 +222,7 @@ export default function Index({ jobs, filters = {} }: Props) {
                                     <li key={page} className={`page-item ${page === jobs.current_page ? 'active' : ''}`}>
                                         <Link
                                             href={`/moderator/jobs?page=${page}`}
-                                            className="page-link"
+                                            className={`page-link ${isDark ? 'bg-gray-700 text-white border-gray-600' : ''}`}
                                         >
                                             {page}
                                         </Link>

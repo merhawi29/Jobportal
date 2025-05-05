@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
@@ -96,14 +96,21 @@ class User extends Authenticatable
         return $this->hasOne(JobSeekerProfile::class);
     }
 
-    public function employerProfile()
+    /**
+     * The employer's profile - using EmployeeProfile model
+     * Note: Despite the name, this is for employer users and their company profiles
+     */
+    public function employeeProfile()
     {
         return $this->hasOne(EmployeeProfile::class);
     }
 
-    public function employeeProfile()
+    /**
+     * Alias for employeeProfile - used for compatibility
+     */
+    public function employerProfile()
     {
-        return $this->hasOne(EmployeeProfile::class);
+        return $this->employeeProfile();
     }
 
     public function jobAlerts()
