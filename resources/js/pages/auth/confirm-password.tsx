@@ -32,7 +32,7 @@ export default function ConfirmPassword() {
             <form onSubmit={submit}>
                 <div className="space-y-6">
                     <div className="grid gap-2">
-                        <Label htmlFor="password">Password</Label>
+                        <Label htmlFor="password" className="text-lg font-medium text-gray-800">Password</Label>
                         <Input
                             id="password"
                             type="password"
@@ -42,14 +42,19 @@ export default function ConfirmPassword() {
                             value={data.password}
                             autoFocus
                             onChange={(e) => setData('password', e.target.value)}
+                            className="border border-gray-200 p-2 text-lg bg-gray-50"
                         />
 
                         <InputError message={errors.password} />
                     </div>
 
                     <div className="flex items-center">
-                        <Button className="w-full" disabled={processing}>
-                            {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
+                        <Button 
+                            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 text-base"
+                            variant="success"
+                            disabled={processing}
+                        >
+                            {processing && <LoaderCircle className="h-5 w-5 animate-spin mr-2" />}
                             Confirm password
                         </Button>
                     </div>

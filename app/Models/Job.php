@@ -146,13 +146,65 @@ class Job extends Model
             });
         });
 
+        $query->when($filters['name'] ?? null, function ($query, $name) {
+            $query->where(function ($query) use ($name) {
+                $query->where('title', 'like', '%' . $name . '%')
+                    ->orWhere('company', 'like', '%' . $name . '%');
+            });
+        });
+
+        $query->when($filters['skills'] ?? null, function ($query, $skills) {
+            $skillsArray = explode(',', $skills);
+            $query->where(function ($query) use ($skillsArray) {
+                foreach ($skillsArray as $skill) {
+                    $skill = trim($skill);
+                    if (!empty($skill)) {
+                        $query->orWhere('requirements', 'like', '%' . $skill . '%')
+                              ->orWhere('description', 'like', '%' . $skill . '%');
+                    }
+                }
+            });
+        });
+
+        $query->when($filters['experience'] ?? null, function ($query, $experience) {
+            switch($experience) {
+                case 'entry':
+                    $query->where(function ($query) {
+                        $query->where('requirements', 'like', '%entry%')
+                            ->orWhere('requirements', 'like', '%junior%')
+                            ->orWhere('requirements', 'like', '%0-2 years%');
+                    });
+                    break;
+                case 'mid':
+                    $query->where(function ($query) {
+                        $query->where('requirements', 'like', '%mid%')
+                            ->orWhere('requirements', 'like', '%3-5 years%');
+                    });
+                    break;
+                case 'senior':
+                    $query->where(function ($query) {
+                        $query->where('requirements', 'like', '%senior%')
+                            ->orWhere('requirements', 'like', '%lead%')
+                            ->orWhere('requirements', 'like', '%5+ years%');
+                    });
+                    break;
+                case 'expert':
+                    $query->where(function ($query) {
+                        $query->where('requirements', 'like', '%expert%')
+                            ->orWhere('requirements', 'like', '%principal%')
+                            ->orWhere('requirements', 'like', '%10+ years%');
+                    });
+                    break;
+            }
+        });
+
+        $query->when($filters['location'] ?? null, function ($query, $location) {
+            $query->where('location', 'like', '%' . $location . '%');
+        });
+
         $query->when($filters['type'] ?? null, function ($query, $type) {
             $types = explode(',', $type);
             $query->whereIn('type', $types);
-        });
-
-        $query->when($filters['sector'] ?? null, function ($query, $sector) {
-            $query->where('sector', $sector);
         });
     }
 }

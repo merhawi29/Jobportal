@@ -12,6 +12,8 @@ interface ProfileData {
     location: string;
     education: Array<{ institution: string; degree: string }>;
     experience: Array<{ company: string; position: string }>;
+    experience_level?: string;
+    experience_years?: number;
     skills: string[];
     about: string;
     linkedin_url: string | null;
@@ -75,6 +77,47 @@ export default function Show({ profile, isOwnProfile, flash, error }: Props) {
             {isVisible ? 'Visible' : 'Hidden'}
         </span>
     );
+
+    // Function to get a formatted display of experience
+    const getExperienceDisplay = () => {
+        // If we have the new experience level and years, show them prominently
+        if (profile.experience_level) {
+            return (
+                <div className="border-b last:border-0 pb-4 last:pb-0">
+                    <h4 className="font-semibold">{getExperienceLevelName(profile.experience_level)}</h4>
+                    <p className="text-gray-600">{profile.experience_years} years of experience</p>
+                </div>
+            );
+        }
+        
+        // Otherwise, fall back to the array of experience items
+        if (Array.isArray(profile.experience) && profile.experience.length > 0) {
+            return profile.experience.map((exp, index) => (
+                <div key={index} className="border-b last:border-0 pb-4 last:pb-0">
+                    <h4 className="font-semibold">{exp.company}</h4>
+                    <p className="text-gray-600">{exp.position}</p>
+                </div>
+            ));
+        }
+        
+        return <p className="text-gray-500">No experience listed</p>;
+    };
+
+    // Function to convert experience_level code to display name
+    const getExperienceLevelName = (level: string): string => {
+        switch (level) {
+            case 'entry':
+                return 'Entry Level';
+            case 'mid':
+                return 'Mid Level';
+            case 'senior':
+                return 'Senior Level';
+            case 'expert':
+                return 'Expert Level';
+            default:
+                return level;
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gray-50 py-12">
@@ -270,12 +313,7 @@ export default function Show({ profile, isOwnProfile, flash, error }: Props) {
                                         </CardHeader>
                                         <CardContent>
                                             <div className="space-y-4">
-                                                {profile.experience.map((exp, index) => (
-                                                    <div key={index} className="border-b last:border-0 pb-4 last:pb-0">
-                                                        <h4 className="font-semibold">{exp.company}</h4>
-                                                        <p className="text-gray-600">{exp.position}</p>
-                                                    </div>
-                                                ))}
+                                                {getExperienceDisplay()}
                                             </div>
                                         </CardContent>
                                     </Card>

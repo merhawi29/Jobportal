@@ -21,10 +21,9 @@ interface Props {
 }
 
 export default function Show({ job, auth, isSaved = false, hasApplied = false, flash, error }: Props) {
-    const isJobSeeker = auth.user?.role === "job_seeker";
-    // console.log(isJobSeeker);
     const isJobOwner = auth.user?.id === job.user_id;
     const [isApplying, setIsApplying] = useState(false);
+    const [showLoginPrompt, setShowLoginPrompt] = useState(false);
     const [formData, setFormData] = useState({
         cover_letter: '',
         resume: null as File | null,
@@ -32,7 +31,7 @@ export default function Show({ job, auth, isSaved = false, hasApplied = false, f
 
     const handleSave = () => {
         if (!auth.user) {
-            window.location.href = route('login');
+            setShowLoginPrompt(true);
             return;
         }
 
@@ -47,7 +46,7 @@ export default function Show({ job, auth, isSaved = false, hasApplied = false, f
         e.preventDefault();
 
         if (!auth.user) {
-            window.location.href = route('login');
+            setShowLoginPrompt(true);
             return;
         }
 
@@ -72,118 +71,190 @@ export default function Show({ job, auth, isSaved = false, hasApplied = false, f
     };
 
     return (
-        <div className="bg-light min-vh-100">
-            <Head title={`${job.title} - Job Details`} />
-
+        <>
+            <Head title={job.title} />
             <div className="container py-5">
-                {flash?.success && (
-                    <div className="alert alert-success alert-dismissible fade show" role="alert">
-                        {flash.success}
-                        <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                )}
-                {(flash?.error || error) && (
-                    <div className="alert alert-danger alert-dismissible fade show" role="alert">
-                        {flash?.error || error}
-                        <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                )}
-
-                <div className="mb-4 d-flex justify-content-between align-items-center">
-                    <Link href={route('jobs.index')} className="btn btn-outline-success">
-                        <i className="fas fa-arrow-left me-2"></i>
-                        Back to Jobs
-                    </Link>
-                    {isJobOwner && (
-                        <div className="d-flex gap-2">
-                            <Link
-                                href={route('jobs.edit', job.id)}
-                                className="btn btn-primary"
-                            >
-                                <i className="fas fa-edit me-2"></i>
-                                Edit Job
+                <div className="row">
+                    <div className="col-lg-8">
+                        <div className="mb-4">
+                            <Link href={route('jobs.index')} className="btn btn-outline-success">
+                                <i className="fas fa-arrow-left me-2"></i>
+                                Back to Jobs
                             </Link>
-                            <button
-                                onClick={handleDelete}
-                                className="btn btn-danger"
-                            >
-                                <i className="fas fa-trash me-2"></i>
-                                Delete Job
-                            </button>
                         </div>
-                    )}
-                </div>
+                        <div className="card border-0 shadow-sm">
+                            <div className="card-body p-4">
+                                <div className="d-flex justify-content-between align-items-start mb-4">
+                                    <div>
+                                        <h1 className="h2 mb-2">{job.title}</h1>
+                                        <div className="d-flex align-items-center gap-2">
+                                            <span className="text-muted">{job.company}</span>
+                                            {job.user?.verified && (
+                                                <i className="fas fa-check-circle text-success"></i>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="d-flex gap-2">
+                                        {!isJobOwner && (
+                                            <>
+                                                <button
+                                                    onClick={handleSave}
+                                                    className={`btn ${isSaved ? 'btn-success' : 'btn-outline-success'}`}
+                                                >
+                                                    <i className={`fas fa-${isSaved ? 'bookmark' : 'bookmark'}`}></i>
+                                                    {isSaved ? 'Saved' : 'Save'}
+                                                </button>
+                                                {!hasApplied && (
+                                                    <button
+                                                        onClick={() => {
+                                                            if (!auth.user) {
+                                                                setShowLoginPrompt(true);
+                                                            } else {
+                                                                setIsApplying(true);
+                                                            }
+                                                        }}
+                                                        className="btn btn-success"
+                                                    >
+                                                        Apply Now
+                                                    </button>
+                                                )}
+                                            </>
+                                        )}
+                                        {isJobOwner && (
+                                            <div className="d-flex gap-2">
+                                                <Link
+                                                    href={route('jobs.edit', job.id)}
+                                                    className="btn btn-outline-warning"
+                                                >
+                                                    <i className="fas fa-edit"></i> Edit
+                                                </Link>
+                                                <button
+                                                    onClick={handleDelete}
+                                                    className="btn btn-outline-danger"
+                                                >
+                                                    <i className="fas fa-trash"></i> Delete
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
 
-                <div className="bg-white shadow-sm rounded p-4">
-                    <div className="d-flex justify-content-between align-items-start mb-4">
-                        <div>
-                            <h1 className="h2 mb-2">{job.title}</h1>
-                            <p className="text-success mb-0">{job.company}</p>
-                        </div>
-                        { isJobSeeker && (
-                            <div className="d-flex gap-2">
-                                <button
-                                    onClick={handleSave}
-                                    className={`btn ${isSaved ? 'btn-danger' : 'btn-outline-success'}`}
-                                >
-                                    <i className={`fas fa-heart${isSaved ? '' : '-broken'} me-2`}></i>
-                                    {isSaved ? 'Unsave' : 'Save Job'}
-                                </button>
-                                {!hasApplied && (
-                                    <button
-                                        onClick={() => setIsApplying(true)}
-                                        className="btn btn-success"
-                                    >
-                                        <i className="fas fa-paper-plane me-2"></i>
-                                        Apply Now
-                                    </button>
+                                <div className="row mb-4">
+                                    <div className="col-md-6">
+                                        <p><strong>Location:</strong> {job.location}</p>
+                                        <p><strong>Job Type:</strong> {job.type}</p>
+                                    </div>
+                                    <div className="col-md-6">
+                                        <p><strong>Salary Range:</strong> {job.salary_range}</p>
+                                        <p><strong>Posted by:</strong> {job.user?.name}</p>
+                                        <p><strong>Deadline:</strong> {new Date(job.deadline).toLocaleDateString()}</p>
+                                    </div>
+                                </div>
+
+                                <div className="mb-4">
+                                    <h3 className="h4">Description</h3>
+                                    <p className="text-muted">{job.description}</p>
+                                </div>
+
+                                <div className="mb-4">
+                                    <h3 className="h4">Requirements</h3>
+                                    <div className="text-muted" style={{ whiteSpace: 'pre-line' }}>
+                                        {job.requirements}
+                                    </div>
+                                </div>
+
+                                <div className="mb-4">
+                                    <h3 className="h4">Benefits</h3>
+                                    <div className="text-muted" style={{ whiteSpace: 'pre-line' }}>
+                                        {job.benefits}
+                                    </div>
+                                </div>
+
+                                {/* Application Form Modal */}
+                                {auth.user ? (
+                                    <ApplicationFormModal
+                                        isOpen={isApplying}
+                                        onClose={() => setIsApplying(false)}
+                                        onSubmit={handleApply}
+                                        jobTitle={job.title}
+                                        formData={formData}
+                                        setFormData={setFormData}
+                                    />
+                                ) : (
+                                    <div className="alert alert-info">
+                                        <i className="fas fa-info-circle me-2"></i>
+                                        Please <Link href={route('login')} className="alert-link">login</Link> or <Link href={route('register')} className="alert-link">register</Link> to apply for this job.
+                                    </div>
                                 )}
                             </div>
-                        )}
-                    </div>
-
-                    <div className="row mb-4">
-                        <div className="col-md-6">
-                            <p><strong>Location:</strong> {job.location}</p>
-                            <p><strong>Job Type:</strong> {job.type}</p>
-                        </div>
-                        <div className="col-md-6">
-                            <p><strong>Salary Range:</strong> {job.salary_range}</p>
-                            <p><strong>Posted by:</strong> {job.user?.name}</p>
-                            <p><strong>Deadline:</strong> {new Date(job.deadline).toLocaleDateString()}</p>
                         </div>
                     </div>
-
-                    <div className="mb-4">
-                        <h3 className="h4">Description</h3>
-                        <p className="text-muted">{job.description}</p>
-                    </div>
-
-                    <div className="mb-4">
-                        <h3 className="h4">Requirements</h3>
-                        <div className="text-muted" style={{ whiteSpace: 'pre-line' }}>
-                            {job.requirements}
-                        </div>
-                    </div>
-
-                    <div className="mb-4">
-                        <h3 className="h4">Benefits</h3>
-                        <div className="text-muted" style={{ whiteSpace: 'pre-line' }}>
-                            {job.benefits}
-                        </div>
-                    </div>
-
-                    {/* Application Form Modal */}
-                    <ApplicationFormModal
-                        isOpen={isApplying}
-                        onClose={() => setIsApplying(false)}
-                        onSubmit={handleApply}
-                        jobTitle={job.title}
-                        formData={formData}
-                        setFormData={setFormData}
-                    />
                 </div>
             </div>
-        </div>
+
+            {/* Login Prompt Modal */}
+            {showLoginPrompt && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1050
+                }}>
+                    <div style={{
+                        backgroundColor: 'white',
+                        padding: '20px',
+                        borderRadius: '8px',
+                        maxWidth: '400px',
+                        width: '90%',
+                        position: 'relative'
+                    }}>
+                        <button 
+                            onClick={() => setShowLoginPrompt(false)}
+                            className="btn btn-outline-secondary"
+                            style={{ 
+                                position: 'absolute',
+                                top: '10px',
+                                right: '10px',
+                                padding: '5px 10px',
+                                borderRadius: '50%',
+                                width: '30px',
+                                height: '30px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
+                        >
+                            ×
+                        </button>
+                        <div style={{ marginBottom: '20px', marginTop: '10px' }}>
+                            <h5 style={{ marginBottom: '10px' }}>Login Required</h5>
+                            <p>Please login or register to apply for this job.</p>
+                        </div>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <a 
+                                href={route('login')} 
+                                className="btn btn-success"
+                                style={{ flex: 1 }}
+                            >
+                                Login
+                            </a>
+                            <a 
+                                href={route('register')} 
+                                className="btn btn-outline-success"
+                                style={{ flex: 1 }}
+                            >
+                                Register
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
     );
 }

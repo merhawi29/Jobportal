@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\BlogController;
+use App\Http\Controllers\CandidatesController;
 
 Route::get('/', function () {
     return Inertia::render('Home');
@@ -81,6 +82,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 
+    // Notification routes
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
 
     // Job Seeker routes
     Route::prefix('job-seeker')->group(function () {
@@ -93,21 +98,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/jobs/{job}/save', [SavedJobController::class, 'store'])->name('jobs.save');
         Route::delete('/jobs/{job}/unsave', [SavedJobController::class, 'destroy'])->name('jobs.unsave');
 
-        // Job Alerts routes
-        // Route::get('/job-alerts', function () {
-        //     return Inertia::render('Jobseeker/notifications/index');
-        // })->name('job-alerts.index');
-        // Route::get('/job-alerts', [JobAlertController::class, 'index'])->name('job-alerts.index');
-        // Route::get('/job-alerts/create', [JobAlertController::class, 'create'])->name('job-alerts.create');
-        // Route::post('/job-alerts', [JobAlertController::class, 'store'])->name('job-alerts.store');
-        // Route::get('/job-alerts/{alert}/edit', [JobAlertController::class, 'edit'])->name('job-alerts.edit');
-        // Route::put('/job-alerts/{alert}', [JobAlertController::class, 'update'])->name('job-alerts.update');
-        // Route::put('/job-alerts/{alert}/toggle', [JobAlertController::class, 'toggle'])->name('job-alerts.toggle');
-        // Route::delete('/job-alerts/{alert}', [JobAlertController::class, 'destroy'])->name('job-alerts.destroy');
-        
-        // // Notification routes
-        // Route::post('/notifications/{id}/mark-as-read', [JobAlertController::class, 'markAsRead'])->name('job-alerts.mark-as-read');
-    });
+       });
 
     // Job Seeker Profile routes
 
@@ -131,7 +122,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     Route::prefix('employer')->name('employer.')->middleware(['auth'])->group(function () {
-        Route::get('/jobs', [JobManagementController::class, 'index'])->name('jobs.index');
+        Route::get('/my-jobs', [JobManagementController::class, 'index'])->name('my-jobs.index');
         Route::get('/applications', [JobManagementController::class, 'applications'])->name('applications.index');
         Route::get('/applications/{application}', [JobManagementController::class, 'show'])->name('applications.show');
         Route::put('/applications/{application}/status', [JobManagementController::class, 'updateStatus'])->name('applications.update-status');
@@ -159,127 +150,7 @@ Route::middleware(['auth'])->group(function () {
     // Route::get('/dashboard', [JobSeekerDashboardController::class, 'index'])->name('jobseeker.dashboard');
 });
 
-// Admin routes
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
-    
-    // Jobs Management
-    Route::get('/api/jobs', [App\Http\Controllers\Admin\JobController::class, 'index']);
-    Route::post('/jobs/{job}/approve', [App\Http\Controllers\Admin\JobController::class, 'approve']);
-    Route::post('/jobs/{job}/reject', [App\Http\Controllers\Admin\JobController::class, 'reject']);
-    Route::get('/jobs/{job}/edit', [App\Http\Controllers\Admin\JobController::class, 'edit']);
-    Route::put('/jobs/{job}', [App\Http\Controllers\Admin\JobController::class, 'update']);
-    Route::delete('/jobs/{job}', [App\Http\Controllers\Admin\JobController::class, 'destroy']);
-    
-    // User Management
-    Route::prefix('users')->name('users.')->group(function () {
-        // Job Seeker Management
-        Route::prefix('job-seekers')->name('job-seekers.')->group(function () {
-            Route::get('/', [UserController::class, 'jobSeekersIndex'])->name('index');
-            Route::get('/create', [UserController::class, 'createJobSeeker'])->name('create');
-            Route::get('/{user}/edit', [UserController::class, 'editJobSeeker'])->name('edit');
-            Route::put('/{user}', [UserController::class, 'updateJobSeeker'])->name('update');
-            Route::post('/{user}/suspend', [UserController::class, 'suspendJobSeeker'])->name('suspend');
-            Route::post('/{user}/activate', [UserController::class, 'activateJobSeeker'])->name('activate');
-            Route::post('/{user}/ban', [UserController::class, 'banJobSeeker'])->name('ban');
-            Route::post('/{user}/unban', [UserController::class, 'unbanJobSeeker'])->name('unban');
-            Route::delete('/{user}', [UserController::class, 'deleteJobSeeker'])->name('delete');
-        });
 
-        // Employer Management
-        Route::prefix('employers')->name('employers.')->group(function () {
-            Route::get('/', function () {
-                return Inertia::render('Admin/Users/Employers/Index');
-            })->name('index');
-            Route::get('/create', [App\Http\Controllers\Admin\UserController::class, 'createEmployer'])->name('create');
-            Route::get('/{user}/edit', [App\Http\Controllers\Admin\UserController::class, 'edit'])->name('edit');
-            Route::put('/{user}', [App\Http\Controllers\Admin\UserController::class, 'update'])->name('update');
-            Route::post('/{user}/suspend', [App\Http\Controllers\Admin\UserController::class, 'suspendEmployer'])->name('suspend');
-            Route::post('/{user}/activate', [App\Http\Controllers\Admin\UserController::class, 'activateEmployer'])->name('activate');
-            Route::post('/{user}/ban', [App\Http\Controllers\Admin\UserController::class, 'banEmployer'])->name('ban');
-            Route::post('/{user}/unban', [App\Http\Controllers\Admin\UserController::class, 'unbanEmployer'])->name('unban');
-            Route::delete('/{user}', [App\Http\Controllers\Admin\UserController::class, 'deleteEmployer'])->name('delete');
-        });
-    });
-
-    // Job Seeker API Routes
-    Route::prefix('api/users/job-seekers')->group(function () {
-        Route::get('/', [App\Http\Controllers\Admin\UserController::class, 'jobSeekers']);
-        Route::post('/', [App\Http\Controllers\Admin\UserController::class, 'storeJobSeeker']);
-        Route::post('/{user}/suspend', [App\Http\Controllers\Admin\UserController::class, 'suspendJobSeeker']);
-        Route::post('/{user}/activate', [App\Http\Controllers\Admin\UserController::class, 'activateJobSeeker']);
-        Route::delete('/{user}', [App\Http\Controllers\Admin\UserController::class, 'deleteJobSeeker']);
-    });
-
-    // Employer API Routes
-    Route::prefix('api/users/employers')->group(function () {
-        Route::get('/', [App\Http\Controllers\Admin\UserController::class, 'employers']);
-        Route::post('/', [App\Http\Controllers\Admin\UserController::class, 'storeEmployer']);
-        Route::post('/{user}/suspend', [App\Http\Controllers\Admin\UserController::class, 'suspendEmployer']);
-        Route::post('/{user}/activate', [App\Http\Controllers\Admin\UserController::class, 'activateEmployer']);
-        Route::delete('/{user}', [App\Http\Controllers\Admin\UserController::class, 'deleteEmployer']);
-    });
-
-    // Job Management
-    Route::prefix('jobs')->name('jobs.')->group(function () {
-        Route::get('/', function () {
-            return Inertia::render('Admin/Jobs/Index');
-        })->name('index');
-        Route::get('/{job}/edit', [App\Http\Controllers\Admin\JobController::class, 'edit'])->name('edit');
-        Route::put('/{job}', [App\Http\Controllers\Admin\JobController::class, 'update'])->name('update');
-        Route::post('/{job}/approve', [App\Http\Controllers\Admin\JobController::class, 'approve'])->name('approve');
-        Route::post('/{job}/reject', [App\Http\Controllers\Admin\JobController::class, 'reject'])->name('reject');
-    });
-
-    // Job API Routes
-    Route::prefix('api/jobs')->group(function () {
-        Route::get('/', [App\Http\Controllers\Admin\JobController::class, 'index']);
-    });
-
-    // Employer Verification
-    Route::prefix('verifications')->name('verifications.')->group(function () {
-        Route::get('/', function () {
-            return Inertia::render('Admin/Verifications/Index');
-        })->name('index');
-        Route::post('/{employer}/verify', [App\Http\Controllers\Admin\VerificationController::class, 'verify'])->name('verify');
-        Route::post('/{employer}/reject', [App\Http\Controllers\Admin\VerificationController::class, 'reject'])->name('reject');
-    });
-
-    // Content Management
-    Route::get('/content', [App\Http\Controllers\Admin\ContentController::class, 'index'])->name('content.index');
-    Route::get('/content/{type}/create', [App\Http\Controllers\Admin\ContentController::class, 'create'])
-        ->where('type', 'career_resource|blog_post|faq')
-        ->name('content.create');
-    Route::post('/content', [App\Http\Controllers\Admin\ContentController::class, 'store'])->name('content.store');
-    Route::get('/content/{content}/edit', [App\Http\Controllers\Admin\ContentController::class, 'edit'])->name('content.edit');
-    Route::put('/content/{content}', [App\Http\Controllers\Admin\ContentController::class, 'update'])->name('content.update');
-    Route::patch('/content/{content}/status', [App\Http\Controllers\Admin\ContentController::class, 'updateStatus'])->name('content.update-status');
-    Route::delete('/content/{content}', [App\Http\Controllers\Admin\ContentController::class, 'destroy'])->name('content.destroy');
-
-    // Verification routes
-    Route::get('/verifications', [VerificationController::class, 'index'])->name('verifications.index');
-    Route::post('/verifications/{verification}/verify', [VerificationController::class, 'verify'])->name('verifications.verify');
-    Route::post('/verifications/{verification}/reject', [VerificationController::class, 'reject'])->name('verifications.reject');
-    Route::get('/verifications/{verification}/document', [VerificationController::class, 'viewDocument'])->name('verifications.document');
-
-    // Content API Routes
-    Route::prefix('api/content')->group(function () {
-        Route::get('/', [App\Http\Controllers\Admin\ContentController::class, 'index']);
-    });
-
-    // ... rest of the admin routes ...
-    Route::get('/reports/download', [ReportController::class, 'downloadReport'])->name('admin.reports.download');
-});
-
-// Test route for debugging
-
-
-// Test route for job alerts (JSON only)
-
-
-// Debug route for job alerts
-
-// Test page for notifications
 
 // Blog routes
 Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
@@ -319,6 +190,13 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         
         return response()->json($results);
     });
+});
+
+// Employer Routes
+Route::middleware(['auth'])->prefix('employer')->name('employer.')->group(function () {
+    // Candidates search routes - move these inside this group
+    Route::get('/candidates', [CandidatesController::class, 'search'])->name('candidates.search');
+    Route::get('/candidates/{id}', [CandidatesController::class, 'show'])->name('candidates.show');
 });
 
 require __DIR__.'/settings.php';

@@ -10,7 +10,7 @@ interface Props {
     error?: string;
 }
 
-export default function Verifications({ verifications, error }: Props) {
+export default function Verifications({ verifications = [], error }: Props) {
     const { theme } = useTheme();
     const isDark = theme === 'dark';
     const [rejectionReason, setRejectionReason] = useState('');
@@ -76,7 +76,7 @@ export default function Verifications({ verifications, error }: Props) {
                             </tr>
                         </thead>
                         <tbody className={`${isDark ? 'bg-gray-800' : 'bg-white'} divide-y ${isDark ? 'divide-gray-700' : 'divide-gray-200'}`}>
-                            {verifications.map((verification) => (
+                            {(verifications || []).map((verification) => (
                                 <tr key={verification.id} className={isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>

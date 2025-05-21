@@ -9,25 +9,31 @@ use App\Http\Controllers\Admin\VerificationController;
 use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\JobApplicationController;
+use App\Http\Controllers\Admin\EmailVerificationController;
 
 Route::middleware(['auth'])->name('admin.')->group(function () {
-    Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
     // Applications Management
-    Route::get('/admin/applications', [JobApplicationController::class, 'index'])->name('applications.index');
-    Route::get('/admin/applications/{application}', [JobApplicationController::class, 'show'])->name('applications.show');
-    Route::patch('/admin/applications/{application}/status', [JobApplicationController::class, 'updateStatus'])->name('applications.update-status');
+    Route::get('/applications', [JobApplicationController::class, 'index'])->name('applications.index');
+    Route::get('/applications/{application}', [JobApplicationController::class, 'show'])->name('applications.show');
+    Route::patch('/applications/{application}/status', [JobApplicationController::class, 'updateStatus'])->name('applications.update-status');
     
     // Jobs Management
-    Route::get('/admin/api/jobs', [JobController::class, 'index']);
-    Route::post('/admin/jobs/{job}/approve', [JobController::class, 'approve']);
-    Route::post('/admin/jobs/{job}/reject', [JobController::class, 'reject']);
-    Route::get('/admin/jobs/{job}/edit', [JobController::class, 'edit']);
-    Route::put('/admin/jobs/{job}', [JobController::class, 'update']);
-    Route::delete('/admin/jobs/{job}', [JobController::class, 'destroy']);
-    
+    Route::prefix('job-management')->name('job-management.')->group(function () {
+        Route::get('/', function () {
+            return Inertia::render('Admin/Jobs/Index');
+        })->name('index');
+        Route::get('/api/jobs', [JobController::class, 'index'])->name('api.index');
+        Route::get('/{job}/edit', [JobController::class, 'edit'])->name('edit');
+        Route::put('/{job}', [JobController::class, 'update'])->name('update');
+        Route::post('/{job}/approve', [JobController::class, 'approve'])->name('approve');
+        Route::post('/{job}/reject', [JobController::class, 'reject'])->name('reject');
+        Route::delete('/{job}', [JobController::class, 'destroy'])->name('destroy');
+    });
+
     // User Management
-    Route::prefix('admin/users')->name('users.')->group(function () {
+    Route::prefix('users')->name('users.')->group(function () {
         // Job Seeker Management
         Route::prefix('job-seekers')->name('job-seekers.')->group(function () {
             Route::get('/', [UserController::class, 'jobSeekersIndex'])->name('index');
@@ -57,19 +63,8 @@ Route::middleware(['auth'])->name('admin.')->group(function () {
         });
     });
 
-    // Job Management
-    Route::prefix('admin/jobs')->name('jobs.')->group(function () {
-        Route::get('/', function () {
-            return Inertia::render('Admin/Jobs/Index');
-        })->name('index');
-        Route::get('/{job}/edit', [JobController::class, 'edit'])->name('edit');
-        Route::put('/{job}', [JobController::class, 'update'])->name('update');
-        Route::post('/{job}/approve', [JobController::class, 'approve'])->name('approve');
-        Route::post('/{job}/reject', [JobController::class, 'reject'])->name('reject');
-    });
-
     // Employer Verification
-    Route::prefix('admin/verifications')->name('verifications.')->group(function () {
+    Route::prefix('verifications')->name('verifications.')->group(function () {
         Route::get('/', function () {
             return Inertia::render('Admin/Verifications/Index');
         })->name('index');
@@ -77,17 +72,27 @@ Route::middleware(['auth'])->name('admin.')->group(function () {
         Route::post('/{employer}/reject', [VerificationController::class, 'reject'])->name('reject');
     });
 
+    // Email Verification Management
+    Route::prefix('email-verifications')->name('email-verifications.')->group(function () {
+        Route::get('/', [EmailVerificationController::class, 'index'])->name('index');
+        Route::get('/users', [EmailVerificationController::class, 'getUsers'])->name('list');
+        Route::post('/{user}/verify', [EmailVerificationController::class, 'verify'])->name('verify');
+        Route::post('/{user}/unverify', [EmailVerificationController::class, 'unverify'])->name('unverify');
+        Route::post('/{user}/resend', [EmailVerificationController::class, 'resend'])->name('resend');
+        Route::delete('/{user}', [EmailVerificationController::class, 'destroy'])->name('delete');
+    });
+
     // Content Management
-    Route::get('/admin/content', [ContentController::class, 'index'])->name('content.index');
-    Route::get('/admin/content/{type}/create', [ContentController::class, 'create'])
+    Route::get('/content', [ContentController::class, 'index'])->name('content.index');
+    Route::get('/content/{type}/create', [ContentController::class, 'create'])
         ->where('type', 'career_resource|blog_post|faq')
         ->name('content.create');
-    Route::post('/admin/content', [ContentController::class, 'store'])->name('content.store');
-    Route::get('/admin/content/{content}/edit', [ContentController::class, 'edit'])->name('content.edit');
-    Route::put('/admin/content/{content}', [ContentController::class, 'update'])->name('content.update');
-    Route::patch('/admin/content/{content}/status', [ContentController::class, 'updateStatus'])->name('content.update-status');
-    Route::delete('/admin/content/{content}', [ContentController::class, 'destroy'])->name('content.destroy');
+    Route::post('/content', [ContentController::class, 'store'])->name('content.store');
+    Route::get('/content/{content}/edit', [ContentController::class, 'edit'])->name('content.edit');
+    Route::put('/content/{content}', [ContentController::class, 'update'])->name('content.update');
+    Route::patch('/content/{content}/status', [ContentController::class, 'updateStatus'])->name('content.update-status');
+    Route::delete('/content/{content}', [ContentController::class, 'destroy'])->name('content.destroy');
 
     // Reports
-    Route::get('/admin/reports/download', [ReportController::class, 'downloadReport'])->name('reports.download');
+    Route::get('/reports/download', [ReportController::class, 'downloadReport'])->name('reports.download');
 }); 

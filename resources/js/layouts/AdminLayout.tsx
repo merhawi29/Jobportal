@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Link } from '@inertiajs/react';
-import { User } from '@/types';
+import type { User } from '@/types/index';
 
 interface Props {
     children: ReactNode;
@@ -34,7 +34,7 @@ export default function AdminLayout({ children, user }: Props) {
                                     Users
                                 </Link>
                                 <Link
-                                    href="/admin/jobs"
+                                    href="/admin/job-management"
                                     className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
                                 >
                                     Jobs

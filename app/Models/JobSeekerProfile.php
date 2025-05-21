@@ -19,11 +19,17 @@ class JobSeekerProfile extends Model
         'profile_picture',
         'skills',
         'experience',
+        'experience_level',
+        'experience_years',
         'education',
         'certifications',
         'languages',
         'privacy_settings',
         'is_public',
+        'about',
+        'resume',
+        'linkedin_url',
+        'github_url',
     ];
 
     protected $casts = [

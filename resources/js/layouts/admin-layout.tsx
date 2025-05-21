@@ -16,6 +16,7 @@ import {
     ClipboardList,
     Moon,
     Sun,
+    Mail,
 } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -32,9 +33,10 @@ const navigation = [
         // subItems: [
             { name: 'Job Seekers', href: '/admin/users/job-seekers', icon: Users },
             { name: 'Employers', href: '/admin/users/employers', icon: Building2 },
+            { name: 'Email Verifications', href: '/admin/email-verifications', icon: Mail },
         // ]
     // },
-    { name: 'Jobs', href: '/admin/jobs', icon: Briefcase },
+    { name: 'Jobs', href: '/admin/job-management', icon: Briefcase },
     { name: 'Applications', href: '/admin/applications', icon: ClipboardList },
     { name: 'Verifications', href: '/admin/verifications', icon: CheckCircle2 },
     { 

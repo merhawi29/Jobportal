@@ -27,14 +27,24 @@ export default function VerifyEmail({ status }: { status?: string }) {
             )}
 
             <form onSubmit={submit} className="space-y-6 text-center">
-                <Button disabled={processing} variant="secondary">
-                    {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
+                <Button 
+                    disabled={processing} 
+                    className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 text-base w-full"
+                    variant="success"
+                >
+                    {processing && <LoaderCircle className="h-5 w-5 animate-spin mr-2" />}
                     Resend verification email
                 </Button>
 
-                <TextLink href={route('logout')} method="post" className="mx-auto block text-sm">
-                    Log out
-                </TextLink>
+                <div className="text-center text-base mt-4">
+                    <TextLink 
+                        href={route('logout')} 
+                        method="post" 
+                        className="mx-auto block text-blue-600 hover:text-blue-800 font-semibold"
+                    >
+                        Log out
+                    </TextLink>
+                </div>
             </form>
         </AuthLayout>
     );

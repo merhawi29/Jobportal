@@ -30,7 +30,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
             <div className="space-y-6">
                 <form onSubmit={submit}>
                     <div className="grid gap-2">
-                        <Label htmlFor="email">Email address</Label>
+                        <Label htmlFor="email" className="text-lg font-medium text-gray-800">Email address</Label>
                         <Input
                             id="email"
                             type="email"
@@ -40,22 +40,27 @@ export default function ForgotPassword({ status }: { status?: string }) {
                             autoFocus
                             onChange={(e) => setData('email', e.target.value)}
                             placeholder="email@example.com"
+                            className="border border-gray-200 p-2 text-lg bg-gray-50"
                         />
 
                         <InputError message={errors.email} />
                     </div>
 
                     <div className="my-6 flex items-center justify-start">
-                        <Button className="w-full" disabled={processing}>
-                            {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
+                        <Button 
+                            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 text-base"
+                            variant="success"
+                            disabled={processing}
+                        >
+                            {processing && <LoaderCircle className="h-5 w-5 animate-spin" />}
                             Email password reset link
                         </Button>
                     </div>
                 </form>
 
-                <div className="text-muted-foreground space-x-1 text-center text-sm">
-                    <span>Or, return to</span>
-                    <TextLink href={route('login')}>log in</TextLink>
+                <div className="text-center text-base">
+                    <span className="text-gray-800">Or, return to</span>
+                    <TextLink href={route('login')} className="ml-2 text-blue-600 hover:text-blue-800 font-semibold">log in</TextLink>
                 </div>
             </div>
         </AuthLayout>

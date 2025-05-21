@@ -16,7 +16,7 @@ interface JobSeekerProfileForm {
     profile_picture: File | null;
     location: string;
     education: Array<{ institution: string; degree: string }>;
-    experience: Array<{ company: string; position: string }>;
+    experience_level: string;
     skills: string[];
     about: string;
     linkedin_url: string;
@@ -39,7 +39,7 @@ export default function Create() {
         profile_picture: null,
         location: '',
         education: [],
-        experience: [],
+        experience_level: '',
         skills: [],
         about: '',
         linkedin_url: '',
@@ -234,43 +234,22 @@ export default function Create() {
                             </div>
 
                             <div>
-                                <Label htmlFor="experience">Experience</Label>
-                                <div className="space-y-2">
-                                        {data.experience.map((exp, index) => (
-                                        <div key={index} className="flex gap-2">
-                                            <Input
-                                                type="text"
-                                                value={exp.company}
-                                                    onChange={e => {
-                                                    const newExperience = [...data.experience];
-                                                    newExperience[index] = { ...exp, company: e.target.value };
-                                                    setData('experience', newExperience);
-                                                }}
-                                                placeholder="Company"
-                                                    disabled={processing}
-                                            />
-                                            <Input
-                                                type="text"
-                                                value={exp.position}
-                                                    onChange={e => {
-                                                    const newExperience = [...data.experience];
-                                                    newExperience[index] = { ...exp, position: e.target.value };
-                                                    setData('experience', newExperience);
-                                                }}
-                                                placeholder="Position"
-                                                    disabled={processing}
-                                            />
-                                        </div>
-                                    ))}
-                                        <Button
-                                        type="button"
-                                            className='btn btn-outline-secondary'
-                                        onClick={() => setData('experience', [...data.experience, { company: '', position: '' }])}
-                                            disabled={processing}
-                                    >
-                                            Add Experience
-                                        </Button>
-                                </div>
+                                <Label htmlFor="experience_level">Experience Level</Label>
+                                <select
+                                    id="experience_level"
+                                    value={data.experience_level}
+                                    onChange={e => setData('experience_level', e.target.value)}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                                    disabled={processing}
+                                    required
+                                >
+                                    <option value="">Select Experience Level</option>
+                                    <option value="entry">Entry Level (0-2 years)</option>
+                                    <option value="mid">Mid Level (3-5 years)</option>
+                                    <option value="senior">Senior Level (6-10 years)</option>
+                                    <option value="expert">Expert (10+ years)</option>
+                                </select>
+                                <InputError message={errors.experience_level} />
                             </div>
 
                             <div>

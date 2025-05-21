@@ -44,7 +44,7 @@ class RouteServiceProvider extends ServiceProvider
             }
 
             if (file_exists(base_path('routes/admin.php'))) {
-                Route::middleware(['web', 'auth', 'verified', 'admin'])
+                Route::middleware(['web', 'auth'])
                     ->prefix('admin')
                     ->name('admin.')
                     ->group(base_path('routes/admin.php'));

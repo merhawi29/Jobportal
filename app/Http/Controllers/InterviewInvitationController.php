@@ -12,6 +12,7 @@ use App\Notifications\InterviewCancelled;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
 
 class InterviewInvitationController extends Controller
 {
@@ -61,37 +62,68 @@ class InterviewInvitationController extends Controller
             'notes' => 'nullable|string|max:1000'
         ]);
 
-        // Create interview invitation
-        $interview = $jobApplication->interviews()->create([
-            'scheduled_at' => $validated['scheduled_at'],
-            'location' => $validated['location'],
-            'type' => $validated['type'],
-            'notes' => $validated['notes'],
-            'status' => 'pending'
-        ]);
-
-        // Update application status
-        $jobApplication->update(['status' => 'interview_scheduled']);
-
         try {
-            // Send notification using Laravel's notification system
-            $jobApplication->user->notify(new InterviewScheduled($interview));
-            
-            Log::info('Interview notification sent successfully', [
-                'interview_id' => $interview->id,
-                'user_id' => $jobApplication->user->id,
-                'email' => $jobApplication->user->email
+            // Create interview invitation
+            $interview = $jobApplication->interviews()->create([
+                'scheduled_at' => $validated['scheduled_at'],
+                'location' => $validated['location'],
+                'type' => $validated['type'],
+                'notes' => $validated['notes'],
+                'status' => 'pending'
             ]);
-            
-        } catch (\Exception $e) {
-            Log::error('Failed to send interview notification', [
-                'error' => $e->getMessage(),
-                'interview_id' => $interview->id
-            ]);
-        }
 
-        return redirect()->route('applications.show', $jobApplication->id)
-            ->with('success', 'Interview scheduled successfully.');
+            Log::info('Interview created', [
+                'interview_id' => $interview->id,
+                'user_id' => $jobApplication->user_id
+            ]);
+
+            // Update application status
+            $jobApplication->update(['status' => 'interview_scheduled']);
+
+            try {
+                // Send notification using Laravel's notification system
+                $user = $jobApplication->user;
+                Log::info('Attempting to send notification to user', [
+                    'user_id' => $user->id,
+                    'email' => $user->email
+                ]);
+
+                $user->notify(new InterviewScheduled($interview));
+                
+                Log::info('Interview notification sent successfully', [
+                    'interview_id' => $interview->id,
+                    'user_id' => $user->id,
+                    'email' => $user->email
+                ]);
+
+                // Verify notification was stored
+                $notificationCount = DB::table('notifications')
+                    ->where('notifiable_id', $user->id)
+                    ->where('type', InterviewScheduled::class)
+                    ->count();
+
+                Log::info('Notification count in database', [
+                    'count' => $notificationCount,
+                    'user_id' => $user->id
+                ]);
+                
+            } catch (\Exception $e) {
+                Log::error('Failed to send interview notification', [
+                    'error' => $e->getMessage(),
+                    'interview_id' => $interview->id,
+                    'trace' => $e->getTraceAsString()
+                ]);
+            }
+
+            return redirect()->route('applications.show', $jobApplication->id)
+                ->with('success', 'Interview scheduled successfully.');
+        } catch (\Exception $e) {
+            Log::error('Failed to create interview', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return back()->with('error', 'Failed to schedule interview. Please try again.');
+        }
     }
 
     public function show(InterviewInvitation $interview)

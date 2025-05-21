@@ -6,6 +6,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Notifications\DatabaseNotification;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -123,8 +124,22 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(JobApplication::class);
     }
 
+    /**
+     * Get the entity's notifications.
+     */
     public function notifications()
     {
-        return $this->hasMany(Notification::class);
+        return $this->morphMany(DatabaseNotification::class, 'notifiable')
+            ->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Get the entity's unread notifications.
+     */
+    public function unreadNotifications()
+    {
+        return $this->morphMany(DatabaseNotification::class, 'notifiable')
+            ->whereNull('read_at')
+            ->orderBy('created_at', 'desc');
     }
 }

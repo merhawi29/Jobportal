@@ -19,7 +19,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme, ThemeProvider } from '@/contexts/ThemeContext';
 
 interface DashboardStats {
     total_users: number;
@@ -40,7 +40,7 @@ interface Props {
     error?: string;
 }
 
-export default function AdminDashboard({ stats, error }: Props) {
+function Dashboard({ stats, error }: Props) {
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
     
@@ -184,5 +184,14 @@ export default function AdminDashboard({ stats, error }: Props) {
                 </div>
             </div>
         </AdminLayout>
+    );
+}
+
+// Wrap the component with ThemeProvider
+export default function AdminDashboard(props: Props) {
+    return (
+        <ThemeProvider>
+            <Dashboard {...props} />
+        </ThemeProvider>
     );
 } 

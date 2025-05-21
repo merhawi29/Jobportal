@@ -18,12 +18,15 @@ return new class extends Migration
             $table->string('profile_picture')->nullable();
             $table->json('skills')->nullable();
             $table->json('experience')->nullable();
+            $table->string('experience_level')->nullable();
+            $table->integer('experience_years')->nullable();
             $table->json('education')->nullable();
             $table->json('certifications')->nullable();
             $table->json('languages')->nullable();
             $table->string('linkedin_url')->nullable();
             $table->string('github_url')->nullable();
             $table->string('resume')->nullable();
+            $table->text('about')->nullable();
             $table->json('privacy_settings')->nullable();
             $table->boolean('is_public')->default(true);
             $table->timestamps();

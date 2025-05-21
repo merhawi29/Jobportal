@@ -61,18 +61,7 @@ const Footer = () => {
                             <li className="mb-2">
                                 <Link href="/category/technology" className="text-muted text-decoration-none footer-link">Technology</Link>
                             </li>
-                            <li className="mb-2">
-                                <Link href="/category/finance" className="text-muted text-decoration-none footer-link">Finance</Link>
-                            </li>
-                            <li className="mb-2">
-                                <Link href="/category/healthcare" className="text-muted text-decoration-none footer-link">Healthcare</Link>
-                            </li>
-                            <li className="mb-2">
-                                <Link href="/category/education" className="text-muted text-decoration-none footer-link">Education</Link>
-                            </li>
-                            <li className="mb-2">
-                                <Link href="/category/marketing" className="text-muted text-decoration-none footer-link">Marketing</Link>
-                            </li>
+                            
                         </ul>
                     </div>
 

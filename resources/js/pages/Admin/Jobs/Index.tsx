@@ -18,7 +18,7 @@ export default function Jobs() {
 
     const fetchJobs = async () => {
         try {
-            const response = await axios.get('/admin/api/jobs');
+            const response = await axios.get('/admin/job-management/api/jobs');
             setJobs(response.data);
             setLoading(false);
         } catch (error) {
@@ -29,7 +29,7 @@ export default function Jobs() {
 
     const handleApprove = async (jobId: number) => {
         try {
-            await axios.post(`/admin/jobs/${jobId}/approve`);
+            await axios.post(`/admin/job-management/${jobId}/approve`);
             fetchJobs();
         } catch (error) {
             console.error('Failed to approve job:', error);
@@ -38,7 +38,7 @@ export default function Jobs() {
 
     const handleReject = async (jobId: number) => {
         try {
-            await axios.post(`/admin/jobs/${jobId}/reject`);
+            await axios.post(`/admin/job-management/${jobId}/reject`);
             fetchJobs();
         } catch (error) {
             console.error('Failed to reject job:', error);
@@ -51,7 +51,7 @@ export default function Jobs() {
         }
         
         try {
-            await axios.delete(`/admin/jobs/${jobId}`);
+            await axios.delete(`/admin/job-management/${jobId}`);
             fetchJobs();
         } catch (error) {
             console.error('Failed to delete job:', error);
@@ -60,7 +60,7 @@ export default function Jobs() {
 
     const handleEdit = async (jobId: number) => {
         // Navigate to edit page
-        window.location.href = `/admin/jobs/${jobId}/edit`;
+        window.location.href = `/admin/job-management/${jobId}/edit`;
     };
 
     if (loading) return (

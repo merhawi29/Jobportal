@@ -23,9 +23,9 @@ interface Props {
 export default function Index({ jobs, filters, auth }: Props) {
     const isEmployee = auth.user?.role === 'employee';
     const [isFilterOpen, setIsFilterOpen] = useState({
-        sector: true,
-        jobTypes: true,
-        jobSites: true
+        jobType: false,
+        jobSites: false,
+        salary: false
     });
     const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>(filters.type ? filters.type.split(',') : []);
     const [selectedSector, setSelectedSector] = useState<string>(filters.sector || '');
@@ -73,6 +73,14 @@ export default function Index({ jobs, filters, auth }: Props) {
             preserveState: true,
             preserveScroll: true
         });
+    };
+
+    const handleSave = (jobId: number) => {
+        if (!auth.user) {
+            window.location.href = route('login');
+            return;
+        }
+        router.post(route('jobs.save', jobId));
     };
 
     const formatTimeAgo = (date: string) => {
@@ -125,43 +133,19 @@ export default function Index({ jobs, filters, auth }: Props) {
                             <div className="card-body">
                                 <h2 className="h4 mb-4 fw-bold">Filter Jobs</h2>
 
-                                {/* Sector Filter */}
-                                <div className="mb-4">
-                                    <div 
-                                        className="d-flex justify-content-between align-items-center mb-3"
-                                        onClick={() => setIsFilterOpen(prev => ({ ...prev, sector: !prev.sector }))}
-                                        style={{ cursor: 'pointer' }}
-                                    >
-                                        <h3 className="h5 mb-0 fw-bold">Sector</h3>
-                                        <i className={`fas fa-chevron-${isFilterOpen.sector ? 'up' : 'down'}`}></i>
-                                    </div>
-                                    {isFilterOpen.sector && (
-                                        <select 
-                                            className="form-select border-0 bg-light"
-                                            value={selectedSector}
-                                            onChange={(e) => handleSectorChange(e.target.value)}
-                                        >
-                                            <option value="">All Sectors</option>
-                                            {sectors.map(sector => (
-                                                <option key={sector.id} value={sector.id}>
-                                                    {sector.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    )}
-                                </div>
+                              
 
                                 {/* Job Types Filter */}
                                 <div className="mb-4">
                                     <div 
                                         className="d-flex justify-content-between align-items-center mb-3"
-                                        onClick={() => setIsFilterOpen(prev => ({ ...prev, jobTypes: !prev.jobTypes }))}
+                                        onClick={() => setIsFilterOpen(prev => ({ ...prev, jobType: !prev.jobType }))}
                                         style={{ cursor: 'pointer' }}
                                     >
                                         <h3 className="h5 mb-0 fw-bold">Job Types</h3>
-                                        <i className={`fas fa-chevron-${isFilterOpen.jobTypes ? 'up' : 'down'}`}></i>
+                                        <i className={`fas fa-chevron-${isFilterOpen.jobType ? 'up' : 'down'}`}></i>
                                     </div>
-                                    {isFilterOpen.jobTypes && (
+                                    {isFilterOpen.jobType && (
                                         <div className="d-flex flex-column gap-2">
                                             {jobTypes.map(type => (
                                                 <div className="form-check" key={type.id}>
@@ -181,20 +165,7 @@ export default function Index({ jobs, filters, auth }: Props) {
                                     )}
                                 </div>
 
-                                {/* Job Sites Filter */}
-                                <div className="mb-4">
-                                    <div 
-                                        className="d-flex justify-content-between align-items-center mb-3"
-                                        onClick={() => setIsFilterOpen(prev => ({ ...prev, jobSites: !prev.jobSites }))}
-                                        style={{ cursor: 'pointer' }}
-                                    >
-                                        <h3 className="h5 mb-0 fw-bold">Job Sites</h3>
-                                        <i className={`fas fa-chevron-${isFilterOpen.jobSites ? 'up' : 'down'}`}></i>
-                                    </div>
-                                    {isFilterOpen.jobSites && (
-                                        <div>Job sites filter content here</div>
-                                    )}
-                                </div>
+                              
                             </div>
                         </div>
                     </div>
@@ -231,12 +202,14 @@ export default function Index({ jobs, filters, auth }: Props) {
                                                 >
                                                     <i className="fas fa-share-alt"></i>
                                                 </button>
-                                                <button 
-                                                    onClick={() => router.post(route('jobs.save', job.id))}
-                                                    className="btn btn-outline-secondary btn-sm"
-                                                >
-                                                    <i className="far fa-bookmark"></i>
-                                                </button>
+                                                {auth.user && (
+                                                    <button
+                                                        onClick={() => handleSave(job.id)}
+                                                        className="btn btn-outline-success btn-sm"
+                                                    >
+                                                        <i className="fas fa-bookmark"></i>
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
 

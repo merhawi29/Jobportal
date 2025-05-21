@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Job;
 use App\Services\JobAlertService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class JobController extends Controller
@@ -95,37 +96,52 @@ class JobController extends Controller
     public function index(Request $request)
     {
         $query = Job::with('user')->approved()->active();
-
-        // Search filter
-        if ($request->has('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('company', 'like', "%{$search}%")
-                  ->orWhere('location', 'like', "%{$search}%");
-            });
+        
+        // Initialize filters array based on user role
+        $filters = [];
+        
+        if (auth()->check()) {
+            $userRole = auth()->user()->role;
+            
+            // Debug the user role
+            Log::info('User role in JobController: ' . $userRole);
+            
+            if ($userRole === 'employer') {
+                // For employers, use specific search parameters
+                $filters = $request->only([
+                    'name',
+                    'experience',
+                    'skills'
+                ]);
+                
+                Log::info('Employer search filters: ', $filters);
+            } else {
+                // For job seekers, use limited search parameters
+                $filters = $request->only([
+                    'search',
+                    'location',
+                    'type'
+                ]);
+                
+                Log::info('Job seeker search filters: ', $filters);
+            }
+        } else {
+            // For guests, same as job seekers
+            $filters = $request->only([
+                'search',
+                'location',
+                'type'
+            ]);
         }
-
-        // Job Type filter
-        if ($request->has('type') && !empty($request->type)) {
-            $types = explode(',', $request->type);
-            $query->where(function($q) use ($types) {
-                foreach ($types as $type) {
-                    $q->orWhere('type', 'like', "%{$type}%");
-                }
-            });
-        }
-
-        // Sector filter
-        if ($request->has('sector') && !empty($request->sector)) {
-            $query->where('sector', $request->sector);
-        }
-
+        
+        $query->filter($filters);
+        
         $jobs = $query->latest()->paginate(10)->withQueryString();
 
         return Inertia::render('Jobs/Index', [
             'jobs' => $jobs,
-            'filters' => $request->only(['search', 'type', 'sector'])
+            'filters' => $filters,
+            'debug_role' => auth()->check() ? auth()->user()->role : 'guest' // Add this for debugging
         ]);
     }
 

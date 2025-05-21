@@ -11,12 +11,15 @@ class CheckRole
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Closure  $next
+     * @param  string  $role
+     * @return mixed
      */
-    public function handle(Request $request, Closure $next, string $role): Response
+    public function handle(Request $request, Closure $next, $role)
     {
         if (!$request->user() || $request->user()->role !== $role) {
-            abort(403, 'Unauthorized action.');
+            return redirect()->route('home')->with('error', 'You do not have permission to access this area.');
         }
 
         return $next($request);

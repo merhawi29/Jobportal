@@ -80,7 +80,7 @@ const jobTypes = [
             {jobTypes.map((type) => (
               <div key={type.name} className="col-md-6 col-lg-4">
                 <Link
-                  href={route('jobs.index', { type: type.name })}
+                  href={`/jobs?type=${type.name}`}
                   className="card h-100 border-0 shadow-sm hover:shadow-md transition-shadow"
                 >
                   <div className="card-body p-4">
@@ -110,7 +110,7 @@ const jobTypes = [
           </div>
 
           <div className="text-center mt-8">
-            <Link href={route('jobs.index')} className="btn btn-success btn-lg">
+            <Link href="/jobs" className="btn btn-success btn-lg">
               <i className="fas fa-search me-2"></i>
               View All Jobs
             </Link>

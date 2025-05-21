@@ -49,6 +49,10 @@ class JobApplicationController extends Controller
 
     public function store(Request $request, Job $job)
     {
+        if (!auth()->check()) {
+            return redirect()->route('login')->with('error', 'Please login to apply for this job.');
+        }
+
         // Check if user has already applied
         $existingApplication = JobApplication::where('user_id', auth()->id())
             ->where('joblists_id', $job->id)
