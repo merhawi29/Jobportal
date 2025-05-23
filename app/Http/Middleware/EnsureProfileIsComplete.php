@@ -43,19 +43,19 @@ class EnsureProfileIsComplete
             $profile = $user->employeeProfile;
             
             // Check if essential profile fields are filled for employer
+            // Note: industry field has been removed
             if (!$profile || 
                 empty($profile->company_name) || 
-                empty($profile->industry) || 
                 empty($profile->company_size) || 
                 empty($profile->company_description)) {
                 
                 // Allow access to profile creation/edit routes
-                if ($request->routeIs('employer.profile.*')) {
+                if ($request->routeIs('employee.profile.*')) {
                     return $next($request);
                 }
 
                 // Redirect to profile creation with message
-                return redirect()->route('employer.profile.create')
+                return redirect()->route('employee.profile.create')
                     ->with('warning', 'Please complete your company profile to access all features.');
             }
         }

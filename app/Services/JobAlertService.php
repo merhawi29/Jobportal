@@ -4,85 +4,114 @@ namespace App\Services;
 
 use App\Models\Job;
 use App\Models\JobAlert;
+use App\Models\User;
 use App\Notifications\JobAlertNotification;
-use Illuminate\Support\Collection;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class JobAlertService
 {
     /**
-     * Process a new job and send notifications to matching job seekers
+     * Process job alerts based on frequency (daily, weekly, immediate)
      */
-    public function processNewJob(Job $job): void
+    public function processAlerts(string $frequency = null): int
     {
-        // Get all active job alerts
-        $matchingAlerts = $this->findMatchingAlerts($job);
-
-        foreach ($matchingAlerts as $alert) {
-            $this->sendJobAlert($job, $alert);
+        $processedCount = 0;
+        
+        try {
+            // Get active alerts of specified frequency (or all frequencies if null)
+            $query = JobAlert::where('is_active', true);
+            
+            if ($frequency) {
+                $query->where('frequency', $frequency);
+            }
+            
+            $alerts = $query->get();
+            Log::info("Processing " . $alerts->count() . " job alerts");
+            
+            foreach ($alerts as $alert) {
+                $matchingJobs = $this->findMatchingJobs($alert);
+                
+                if (!empty($matchingJobs)) {
+                    $user = User::find($alert->user_id);
+                    
+                    if ($user) {
+                        $user->notify(new JobAlertNotification($alert, $matchingJobs));
+                        $processedCount++;
+                    }
+                }
+            }
+            
+            return $processedCount;
+        } catch (\Exception $e) {
+            Log::error("Error processing job alerts: " . $e->getMessage());
+            throw $e;
         }
     }
-
+    
     /**
-     * Find all job alerts that match the given job
+     * Find jobs matching the criteria in a job alert
      */
-    protected function findMatchingAlerts(Job $job): Collection
+    protected function findMatchingJobs(JobAlert $alert): array
     {
-        return JobAlert::query()
-            ->where('is_active', true)
-            ->where(function ($query) use ($job) {
-                $query->where(function ($q) use ($job) {
-                    // Match job title if specified
-                    $q->whereNull('job_title')
-                        ->orWhere('job_title', 'like', '%' . $job->title . '%');
-                })
-                ->where(function ($q) use ($job) {
-                    // Match job type if specified
-                    $q->whereNull('job_type')
-                        ->orWhere('job_type', $job->type);
-                })
-                ->where(function ($q) use ($job) {
-                    // Match location if specified
-                    $q->whereNull('location')
-                        ->orWhere('location', 'like', '%' . $job->location . '%');
-                })
-                ->where(function ($q) use ($job) {
-                    // Match salary range if specified
-                    $q->where(function ($salary) use ($job) {
-                        $salary->whereNull('salary_min')
-                            ->whereNull('salary_max')
-                            ->orWhere(function ($range) use ($job) {
-                                // Check if job salary falls within the alert range
-                                $range->where(function ($min) use ($job) {
-                                    $min->whereNull('salary_min')
-                                        ->orWhere('salary_min', '<=', $job->salary_max);
-                                })
-                                ->where(function ($max) use ($job) {
-                                    $max->whereNull('salary_max')
-                                        ->orWhere('salary_max', '>=', $job->salary_min);
-                                });
-                            });
-                    });
-                });
-            })
-            ->with('user') // Eager load user relationship
-            ->get();
-    }
-
-    /**
-     * Send job alert notification to the user
-     */
-    protected function sendJobAlert(Job $job, JobAlert $alert): void
-    {
-        $alert->user->notify(new JobAlertNotification($job, [
-            'notification_type' => $alert->notification_type,
-            'matched_criteria' => [
-                'job_title' => $alert->job_title,
-                'job_type' => $alert->job_type,
-                'location' => $alert->location,
-                'salary_min' => $alert->salary_min,
-                'salary_max' => $alert->salary_max,
-                'keywords' => $alert->keywords,
-            ]
-        ]));
+        // Get the last time we checked for this alert
+        $lastChecked = DB::table('job_alert_checks')
+            ->where('job_alert_id', $alert->id)
+            ->value('checked_at') ?? Carbon::now()->subDays(30);
+        
+        $query = Job::query();
+        
+        // Only consider jobs posted since last check
+        $query->where('created_at', '>', $lastChecked);
+        
+        // Apply filters based on alert criteria
+        if (!empty($alert->keywords)) {
+            $query->where(function ($q) use ($alert) {
+                foreach ($alert->keywords as $keyword) {
+                    $q->orWhere('title', 'like', "%{$keyword}%")
+                      ->orWhere('description', 'like', "%{$keyword}%");
+                }
+            });
+        }
+        
+        if ($alert->location) {
+            $query->where('location', 'like', "%{$alert->location}%");
+        }
+        
+        if (!empty($alert->categories)) {
+            $query->whereIn('job_category_id', $alert->categories);
+        }
+        
+        if (!empty($alert->job_types)) {
+            $query->whereIn('job_type_id', $alert->job_types);
+        }
+        
+        if ($alert->min_salary) {
+            $query->where('salary_min', '>=', $alert->min_salary);
+        }
+        
+        if ($alert->max_salary) {
+            $query->where('salary_max', '<=', $alert->max_salary);
+        }
+        
+        // Get matching jobs
+        $jobs = $query->get()->map(function ($job) {
+            return [
+                'id' => $job->id,
+                'title' => $job->title,
+                'company_name' => $job->company_name,
+                'location' => $job->location,
+                'url' => route('jobs.show', $job->id)
+            ];
+        })->toArray();
+        
+        // Update the last checked time
+        DB::table('job_alert_checks')->updateOrInsert(
+            ['job_alert_id' => $alert->id],
+            ['checked_at' => Carbon::now()]
+        );
+        
+        return $jobs;
     }
 } 

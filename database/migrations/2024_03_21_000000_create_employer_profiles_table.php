@@ -13,7 +13,6 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('company_name');
             $table->string('company_website')->nullable();
-            $table->string('industry');
             $table->string('company_size');
             $table->text('company_description');
             $table->string('location')->nullable();

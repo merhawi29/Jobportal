@@ -26,7 +26,6 @@ class EmployerSeeder extends Seeder
                     'company_name' => "Company " . $employer->name,
                     'company_website' => "https://www." . strtolower(str_replace(' ', '', $employer->name)) . ".com",
                     'company_size' => collect(['1-10', '11-50', '51-200', '201-500', '501-1000', '1000+'])->random(),
-                    'industry' => collect(['Technology', 'Healthcare', 'Finance', 'Education', 'Manufacturing', 'Retail'])->random(),
                     'company_description' => "This is a sample company description for " . $employer->name,
                     'location' => collect(['Addis Ababa', 'Dire Dawa', 'Hawassa', 'Bahir Dar', 'Adama'])->random()
                 ]

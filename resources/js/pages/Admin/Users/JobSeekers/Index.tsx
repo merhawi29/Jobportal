@@ -18,7 +18,7 @@ export default function JobSeekers() {
 
     const fetchJobSeekers = async () => {
         try {
-            const response = await axios.get('/admin/api/users/job-seekers');
+            const response = await axios.get('/admin/users/api/job-seekers');
             setJobSeekers(response.data);
             setLoading(false);
         } catch (error) {
@@ -29,7 +29,7 @@ export default function JobSeekers() {
 
     const handleSuspend = async (userId: number) => {
         try {
-            await axios.post(`/admin/api/users/job-seekers/${userId}/suspend`);
+            await axios.post(`/admin/users/job-seekers/${userId}/suspend`);
             fetchJobSeekers();
         } catch (error) {
             setError('Failed to suspend user');
@@ -38,7 +38,7 @@ export default function JobSeekers() {
 
     const handleActivate = async (userId: number) => {
         try {
-            await axios.post(`/admin/api/users/job-seekers/${userId}/activate`);
+            await axios.post(`/admin/users/job-seekers/${userId}/activate`);
             fetchJobSeekers();
         } catch (error) {
             setError('Failed to activate user');
@@ -81,7 +81,7 @@ export default function JobSeekers() {
         if (!confirm('Are you sure you want to delete this user?')) return;
         
         try {
-            await axios.delete(`/admin/api/users/job-seekers/${userId}`);
+            await axios.delete(`/admin/users/job-seekers/${userId}`);
             fetchJobSeekers();
         } catch (error) {
             setError('Failed to delete user');
@@ -168,7 +168,7 @@ export default function JobSeekers() {
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <button
                                             onClick={() => window.location.href = `/admin/users/job-seekers/${user.id}/edit`}
-                                            className={`${isDark ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-600 hover:text-indigo-900'} mr-4`}
+                                            className={`${isDark ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-600 hover:text-indigo-900'} mr-6`}
                                         >
                                             Edit
                                         </button>
@@ -176,13 +176,13 @@ export default function JobSeekers() {
                                             <>
                                                 <button
                                                     onClick={() => handleSuspend(user.id)}
-                                                    className={`${isDark ? 'text-yellow-400 hover:text-yellow-300' : 'text-yellow-600 hover:text-yellow-900'} mr-4`}
+                                                    className={`${isDark ? 'text-yellow-400 hover:text-yellow-300' : 'text-yellow-600 hover:text-yellow-900'} mr-6`}
                                                 >
                                                     Suspend
                                                 </button>
                                                 <button
                                                     onClick={() => handleBan(user.id)}
-                                                    className={`${isDark ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-900'} mr-4`}
+                                                    className={`${isDark ? 'text-orange-400 hover:text-orange-300' : 'text-orange-600 hover:text-orange-900'} mr-6`}
                                                 >
                                                     Ban
                                                 </button>
@@ -190,14 +190,14 @@ export default function JobSeekers() {
                                         ) : user.status === 'suspended' ? (
                                             <button
                                                 onClick={() => handleActivate(user.id)}
-                                                className={`${isDark ? 'text-green-400 hover:text-green-300' : 'text-green-600 hover:text-green-900'} mr-4`}
+                                                className={`${isDark ? 'text-green-400 hover:text-green-300' : 'text-green-600 hover:text-green-900'} mr-6`}
                                             >
                                                 Activate
                                             </button>
                                         ) : (
                                             <button
                                                 onClick={() => handleUnban(user.id)}
-                                                className={`${isDark ? 'text-green-400 hover:text-green-300' : 'text-green-600 hover:text-green-900'} mr-4`}
+                                                className={`${isDark ? 'text-green-400 hover:text-green-300' : 'text-green-600 hover:text-green-900'} mr-6`}
                                             >
                                                 Unban
                                             </button>

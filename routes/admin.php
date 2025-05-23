@@ -11,7 +11,7 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\JobApplicationController;
 use App\Http\Controllers\Admin\EmailVerificationController;
 
-Route::middleware(['auth'])->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckRole::class.':admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
     // Applications Management
@@ -46,6 +46,12 @@ Route::middleware(['auth'])->name('admin.')->group(function () {
             Route::delete('/{user}', [UserController::class, 'deleteJobSeeker'])->name('delete');
             Route::post('/{user}/role', [UserController::class, 'assignRole'])->name('assign-role');
         });
+
+        // API endpoint for fetching job seekers data
+        Route::get('/api/job-seekers', [UserController::class, 'jobSeekers'])->name('api.job-seekers');
+
+        // API endpoint for fetching employers data
+        Route::get('/api/employers', [UserController::class, 'employers'])->name('api.employers');
 
         // Employer Management
         Route::prefix('employers')->name('employers.')->group(function () {

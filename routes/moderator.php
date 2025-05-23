@@ -11,7 +11,7 @@ use App\Http\Controllers\Moderator\SettingsController;
 use App\Http\Controllers\Moderator\ActivityLogsController;
 use Inertia\Inertia;
 
-Route::middleware(['auth', 'verified'])->prefix('moderator')->name('moderator.')->group(function () {
+Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckRole::class.':moderator'])->prefix('moderator')->name('moderator.')->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 

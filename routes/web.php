@@ -21,6 +21,7 @@ use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\CandidatesController;
+use App\Http\Controllers\MessageController;
 
 Route::get('/', function () {
     return Inertia::render('Home');
@@ -47,6 +48,11 @@ Route::get('/faqs', function () {
     ]);
 })->name('faqs.index');
 
+// Add this route near the top of your web.php file
+Route::get('/csrf-token', function() {
+    return response()->json(['csrfToken' => csrf_token()]);
+});
+
 // Protected job routes
 Route::middleware(['auth'])->group(function () {
     Route::post('/jobs', [JobController::class, 'store'])->name('jobs.store');
@@ -54,10 +60,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/jobs/{job}/edit', [JobController::class, 'edit'])->name('jobs.edit');
     Route::put('/jobs/{job}', [JobController::class, 'update'])->name('jobs.update');
     Route::delete('/jobs/{job}', [JobController::class, 'destroy'])->name('jobs.destroy');
-    // Route::resource('job-alerts', JobAlertController::class);
-    // Route::put('job-alerts/{alert}/toggle', [JobAlertController::class, 'toggle'])
-    //     ->name('job-alerts.toggle');
-    // Route::post('/jobs/{job}/save', [JobController::class, 'save'])->name('jobs.save');
 
     // Applications
     Route::get('/applications', [JobApplicationController::class, 'index'])->name('applications.index');
@@ -72,9 +74,6 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/interviews/{interview}', [InterviewInvitationController::class, 'update'])->name('interviews.update');
     Route::delete('/interviews/{interview}', [InterviewInvitationController::class, 'destroy'])->name('interviews.destroy');
     Route::post('/interviews/{interview}/test-email', [InterviewInvitationController::class, 'testEmail'])->name('interviews.test-email');
-
-    // Job Alerts
- 
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -82,10 +81,35 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 
+    // Simple auth check endpoint for debugging
+    Route::get('/user/auth-check', function() {
+        return response()->json([
+            'authenticated' => true,
+            'user' => [
+                'id' => auth()->id(),
+                'name' => auth()->user()->name,
+                'role' => auth()->user()->role
+            ]
+        ]);
+    });
+
     // Notification routes
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+    Route::get('/notifications/latest', [NotificationController::class, 'getLatestNotifications'])->name('notifications.latest');
+    Route::get('/notifications/unread-count', [NotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
+
+    // Messaging routes
+    Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
+    Route::get('/api/messages/conversations', [MessageController::class, 'apiGetConversations']);
+    Route::get('/api/messages/{userId}', [MessageController::class, 'getMessages']);
+    Route::post('/api/messages/send', [MessageController::class, 'sendMessage']);
+    Route::post('/api/messages/{userId}/read', [MessageController::class, 'markAsRead']);
+    Route::get('/api/messages/unread-count', [MessageController::class, 'getUnreadCount']);
+
+    // User search route for messaging
+    Route::get('/api/users/search', [App\Http\Controllers\UserController::class, 'search']);
 
     // Job Seeker routes
     Route::prefix('job-seeker')->group(function () {
@@ -97,31 +121,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/saved-jobs', [SavedJobController::class, 'index'])->name('saved-jobs.index');
         Route::post('/jobs/{job}/save', [SavedJobController::class, 'store'])->name('jobs.save');
         Route::delete('/jobs/{job}/unsave', [SavedJobController::class, 'destroy'])->name('jobs.unsave');
-
-       });
+    });
 
     // Job Seeker Profile routes
+// Profile creation routes (accessible to unverified users)
+Route::prefix('jobseeker')->name('jobseeker.')->middleware(['auth'])->group(function () {
+    Route::get('/profile/create', [JobSeekerProfileController::class, 'create'])->name('profile.create');
+    Route::post('/profile', [JobSeekerProfileController::class, 'store'])->name('profile.store');
+});
 
+// Other job seeker profile routes (require email verification)
+Route::prefix('jobseeker')->name('jobseeker.')->middleware(['auth', 'verified'])->group(function () {
+    Route::get('/profile', [JobSeekerProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [JobSeekerProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/photo', [JobSeekerProfileController::class, 'updatePhoto'])->name('profile.photo');
+    Route::get('/profile/show/{id?}', [JobSeekerProfileController::class, 'show'])->name('profile.show');
+});
 
-    Route::prefix('jobseeker')->name('jobseeker.')->group(function () {
-        Route::get('/profile', [JobSeekerProfileController::class, 'edit'])->name('profile.edit');
-        Route::put('/profile', [JobSeekerProfileController::class, 'update'])->name('profile.update');
-        Route::post('/profile/photo', [JobSeekerProfileController::class, 'updatePhoto'])->name('profile.photo');
-        Route::get('/profile/show/{id?}', [JobSeekerProfileController::class, 'show'])->name('profile.show');
-        Route::get('/profile/create', [JobSeekerProfileController::class, 'create'])->name('profile.create');
-        Route::post('/profile', [JobSeekerProfileController::class, 'store'])->name('profile.store');
-        Route::post('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
-    });
-    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
-
-       
-
-
-
-    });
-
-
-    Route::prefix('employer')->name('employer.')->middleware(['auth'])->group(function () {
+    Route::prefix('employer')->name('employer.')->middleware(['auth', 'verified', 'ensure.profile.complete'])->group(function () {
         Route::get('/my-jobs', [JobManagementController::class, 'index'])->name('my-jobs.index');
         Route::get('/applications', [JobManagementController::class, 'applications'])->name('applications.index');
         Route::get('/applications/{application}', [JobManagementController::class, 'show'])->name('applications.show');
@@ -130,27 +147,40 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('applications.notify');
         Route::post('/applications/{application}/schedule-interview', [JobManagementController::class, 'scheduleInterview'])
             ->name('applications.schedule-interview');
+        Route::post('/message/jobseeker/{user}', [\App\Http\Controllers\Employer\MessageController::class, 'sendMessage'])
+            ->name('message.jobseeker');
     });
-// Route::prefix('employee')->name('employee.')->group(function () {
-// });
 
+    // Job Alerts Routes
+    Route::get('/job-alerts', [App\Http\Controllers\JobAlertController::class, 'index'])->name('job-alerts.index');
+    Route::get('/job-alerts/create', [App\Http\Controllers\JobAlertController::class, 'create'])->name('job-alerts.create');
+    Route::post('/job-alerts', [App\Http\Controllers\JobAlertController::class, 'store'])->name('job-alerts.store');
+    Route::get('/job-alerts/{jobAlert}/edit', [App\Http\Controllers\JobAlertController::class, 'edit'])->name('job-alerts.edit');
+    Route::put('/job-alerts/{jobAlert}', [App\Http\Controllers\JobAlertController::class, 'update'])->name('job-alerts.update');
+    Route::delete('/job-alerts/{jobAlert}', [App\Http\Controllers\JobAlertController::class, 'destroy'])->name('job-alerts.destroy');
+    Route::post('/job-alerts/{jobAlert}/toggle-status', [App\Http\Controllers\JobAlertController::class, 'toggleStatus'])->name('job-alerts.toggle-status');
+});
+
+// Employee route group
+// Profile creation/edit routes (accessible to unverified users)
 Route::prefix('employee')->name('employee.')->middleware(['auth'])->group(function () {
+    Route::get('/profile/create', [EmployeeProfileController::class, 'create'])->name('profile.create');
+    Route::post('/profile', [EmployeeProfileController::class, 'store'])->name('profile.store');
+});
+
+// Other employee routes (require email verification)
+Route::prefix('employee')->name('employee.')->middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [EmployeeProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [EmployeeProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/photo', [EmployeeProfileController::class, 'updatePhoto'])->name('profile.photo');
     Route::get('/profile/show/{id?}', [EmployeeProfileController::class, 'show'])->name('profile.show');
-    Route::get('/profile/create', [EmployeeProfileController::class, 'create'])->name('profile.create');
-    Route::post('/profile', [EmployeeProfileController::class, 'store'])->name('profile.store');
 });
 
 // Job Seeker routes that require profile completion
 Route::middleware(['auth'])->group(function () {
     Route::post('/jobs/{job}/apply', [JobApplicationController::class, 'store'])->name('jobs.apply');
     Route::get('/applications', [JobApplicationController::class, 'index'])->name('applications.index');
-    // Route::get('/dashboard', [JobSeekerDashboardController::class, 'index'])->name('jobseeker.dashboard');
 });
-
-
 
 // Blog routes
 Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
@@ -172,6 +202,35 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         return 'Test email sent to ' . $user->email;
     });
     
+    Route::get('/admin/test-notification', function () {
+        $user = auth()->user();
+        $testNotification = new \Illuminate\Notifications\DatabaseNotification([
+            'id' => \Illuminate\Support\Str::uuid()->toString(),
+            'type' => 'App\\Notifications\\TestNotification',
+            'notifiable_type' => get_class($user),
+            'notifiable_id' => $user->id,
+            'data' => json_encode([
+                'message' => 'This is a manual test notification',
+                'job_title' => 'Test Job',
+                'company' => 'Test Company',
+                'employer_name' => 'Test Employer',
+                'created_at' => now()->toIsoString()
+            ]),
+            'read_at' => null,
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
+        
+        $success = $testNotification->save();
+        
+        return response()->json([
+            'success' => $success,
+            'notification_id' => $testNotification->id,
+            'user_id' => $user->id,
+            'message' => $success ? 'Test notification created successfully' : 'Failed to create test notification'
+        ]);
+    });
+    
     Route::get('/admin/resend-interview-notifications', function () {
         $interviews = \App\Models\InterviewInvitation::with('job_application.user')
             ->latest()
@@ -190,10 +249,34 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         
         return response()->json($results);
     });
+    
+    // Debug route for notifications
+    Route::get('/admin/debug-notifications', function () {
+        $user = auth()->user();
+        $notifications = $user->notifications()->latest()->limit(5)->get();
+        $formatted = [];
+        
+        foreach ($notifications as $notification) {
+            $formatted[] = [
+                'id' => $notification->id,
+                'type' => $notification->type,
+                'data' => $notification->data,
+                'read_at' => $notification->read_at,
+                'created_at' => $notification->created_at
+            ];
+        }
+        
+        return response()->json([
+            'user_id' => $user->id,
+            'user_role' => $user->role,
+            'notifications_count' => count($notifications),
+            'notifications' => $formatted
+        ]);
+    });
 });
 
 // Employer Routes
-Route::middleware(['auth'])->prefix('employer')->name('employer.')->group(function () {
+Route::middleware(['auth', 'verified', 'ensure.profile.complete'])->prefix('employer')->name('employer.')->group(function () {
     // Candidates search routes - move these inside this group
     Route::get('/candidates', [CandidatesController::class, 'search'])->name('candidates.search');
     Route::get('/candidates/{id}', [CandidatesController::class, 'show'])->name('candidates.show');

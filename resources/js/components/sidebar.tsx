@@ -117,7 +117,7 @@ const Sidebar = ({ auth }: Props) => {
                                                 <div className="col-lg-3">
                                                     <button type="submit" className="btn btn-light btn-lg">
                                                         <i className="fas fa-search me-2"></i>
-                                                        Search Jobs
+                                                        Search
                                                     </button>
                                                 </div>
                                             </>

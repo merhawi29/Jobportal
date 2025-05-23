@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import FlashMessage from '@/components/FlashMessage';
 
@@ -37,10 +37,41 @@ export default function Index({ applications }: Props) {
         notes: ''
     });
 
+    // Check for potential session issues on page load
+    useEffect(() => {
+        const refreshCSRFToken = () => {
+            fetch('/csrf-token')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.csrfToken) {
+                        document.querySelector('meta[name="csrf-token"]')?.setAttribute('content', data.csrfToken);
+                    }
+                })
+                .catch(error => console.error('Error refreshing CSRF token:', error));
+        };
+
+        // Only refresh if we detect a potential issue or session expiration
+        const lastActivity = localStorage.getItem('lastActivity');
+        if (!lastActivity || Date.now() - parseInt(lastActivity) > 1000 * 60 * 30) {
+            refreshCSRFToken();
+        }
+        
+        // Update last activity time
+        localStorage.setItem('lastActivity', Date.now().toString());
+    }, []);
+
     const updateStatus = (applicationId: number, status: JobApplication['status']) => {
         if (confirm(`Are you sure you want to mark this application as ${status.replace('_', ' ')}?`)) {
             router.put(route('employer.applications.update-status', applicationId), {
                 status: status
+            }, {
+                preserveScroll: true,
+                onError: (errors) => {
+                    if (errors.hasOwnProperty('_token')) {
+                        // If there's a CSRF token error, refresh the page to get a new token
+                        window.location.reload();
+                    }
+                }
             });
         }
     };
@@ -61,6 +92,12 @@ export default function Index({ applications }: Props) {
                 setShowInterviewModal(false);
                 setSelectedApplication(null);
                 setInterviewData({ date: '', notes: '' });
+            },
+            onError: (errors) => {
+                if (errors.hasOwnProperty('_token')) {
+                    // If there's a CSRF token error, refresh the page to get a new token
+                    window.location.reload();
+                }
             }
         });
     };
@@ -166,7 +203,7 @@ export default function Index({ applications }: Props) {
                                                 )}
                                             </td>
                                             <td>
-                                                <div className="btn-group">
+                                                <div className="d-flex gap-2">
                                                     <Link 
                                                         href={route('employer.applications.show', application.id)} 
                                                         className="btn btn-sm btn-primary"
@@ -174,16 +211,10 @@ export default function Index({ applications }: Props) {
                                                     >
                                                         <i className="fas fa-eye"></i>
                                                     </Link>
-                                                    <Link
-                                                        href={route('jobseeker.profile.show', application.user.id)}
-                                                        className="btn btn-sm btn-info"
-                                                        title="View Profile"
-                                                    >
-                                                        <i className="fas fa-user"></i>
-                                                    </Link>
+                                                   
                                                     <button 
                                                         onClick={() => updateStatus(application.id, 'under_review')}
-                                                        className="btn btn-sm btn-info"
+                                                        className="btn btn-sm btn-warning"
                                                         title="Mark Under Review"
                                                         disabled={application.status === 'under_review'}
                                                     >
@@ -203,7 +234,7 @@ export default function Index({ applications }: Props) {
                                                         title="Mark as Hired"
                                                         disabled={application.status === 'hired'}
                                                     >
-                                                        <i className="fas fa-user-check"></i>
+                                                        <i className="fas fa-handshake"></i>
                                                     </button>
                                                     <button 
                                                         onClick={() => updateStatus(application.id, 'rejected')}

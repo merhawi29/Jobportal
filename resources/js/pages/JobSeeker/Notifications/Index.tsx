@@ -16,6 +16,7 @@ interface Notification {
         location?: string;
         type?: string;
         scheduled_at?: string;
+        employer_name?: string;
     };
     read_at: string | null;
     created_at: string;
@@ -183,6 +184,11 @@ export default function Notifications({ auth, alerts }: Props) {
                                                         {notification.data.company && (
                                                             <p className="text-sm text-gray-600">
                                                                 Company: {notification.data.company}
+                                                            </p>
+                                                        )}
+                                                        {notification.data.employer_name && (
+                                                            <p className="text-sm text-gray-600">
+                                                                From: {notification.data.employer_name}
                                                             </p>
                                                         )}
                                                         {notification.data.scheduled_at && (

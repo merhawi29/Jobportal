@@ -30,6 +30,7 @@ interface Notification {
         location?: string;
         type?: string;
         scheduled_at?: string;
+        employer_name?: string;
     };
     read_at: string | null;
     created_at: string;
@@ -140,6 +141,10 @@ interface Notification {
 `}
 </style>
 const Nav = () => {
+    // Set up Axios to include the CSRF token in all requests
+    axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    axios.defaults.withCredentials = true;
+    
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [messageCount, setMessageCount] = useState(0);
     const [alertCount, setAlertCount] = useState(0);
@@ -156,7 +161,20 @@ const Nav = () => {
     const [avatarSrc, setAvatarSrc] = useState<string>('/assets/img/logo/testimonial.png');
 
     useEffect(() => {
-        fetchNotifications();
+        if (auth.user) {
+            fetchNotifications();
+            fetchMessageCount();
+            
+            // Set up an interval to refresh notifications every 30 seconds
+            const interval = setInterval(fetchNotifications, 30000);
+            const messageInterval = setInterval(fetchMessageCount, 30000);
+            
+            // Clean up interval on unmount
+            return () => {
+                clearInterval(interval);
+                clearInterval(messageInterval);
+            };
+        }
         
         // Close dropdown when clicking outside
         const handleClickOutside = (event: MouseEvent) => {
@@ -167,8 +185,10 @@ const Nav = () => {
         };
 
         document.addEventListener('click', handleClickOutside);
-        return () => document.removeEventListener('click', handleClickOutside);
-    }, []);
+        return () => {
+            document.removeEventListener('click', handleClickOutside);
+        };
+    }, [auth.user]);
 
     useEffect(() => {
         if (auth.user?.profile_picture) {
@@ -189,14 +209,40 @@ const Nav = () => {
     }, [auth.user?.profile_picture]);
 
     const fetchNotifications = async () => {
+        if (!auth.user) return;
+        
         try {
-            const response = await axios.get('/api/notifications/latest');
+            console.log("Fetching notifications...");
+            
+            // Use the web route instead of API route for better session handling
+            const response = await axios.get('/notifications/latest', {
+                withCredentials: true,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                }
+            });
+            
+            console.log("Response:", response.data);
+            
             if (response.data && response.data.notifications) {
+                console.log("Setting notifications:", response.data.notifications);
                 setNotifications(response.data.notifications);
                 setAlertCount(response.data.unread_count);
+            } else {
+                console.log("No notifications data in response:", response.data);
             }
         } catch (error) {
             console.error('Error fetching notifications:', error);
+        }
+    };
+
+    const fetchMessageCount = async () => {
+        try {
+            const response = await axios.get('/api/messages/unread-count');
+            setMessageCount(response.data.count);
+        } catch (error) {
+            console.error('Error fetching message count:', error);
         }
     };
 
@@ -206,7 +252,15 @@ const Nav = () => {
 
     const markAsRead = async (id: string) => {
         try {
-            await axios.post(`/api/notifications/${id}/mark-as-read`);
+            // Use web route instead of API route
+            await axios.post(`/notifications/${id}/mark-as-read`, {}, {
+                withCredentials: true,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                }
+            });
+            
             setNotifications(notifications.map(notification => 
                 notification.id === id 
                     ? { ...notification, read_at: new Date().toISOString() }
@@ -270,10 +324,10 @@ const Nav = () => {
     }, [isMenuOpen]);
 
     const renderNotificationDropdown = () => (
-        <div className="notification-dropdown position-relative me-4" ref={notificationRef}>
+        <div className="notification-dropdown position-relative me-5" ref={notificationRef}>
             <button 
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="btn btn-link position-relative text-success"
+                className="btn btn-link position-relative text-primary"
                 aria-expanded={dropdownOpen}
             >
                 <i className="fas fa-bell fa-lg"></i>
@@ -292,7 +346,13 @@ const Nav = () => {
                             <button 
                                 onClick={async () => {
                                     try {
-                                        await axios.post('/api/notifications/mark-all-read');
+                                        await axios.post('/notifications/mark-all-read', {}, {
+                                            withCredentials: true,
+                                            headers: {
+                                                'X-Requested-With': 'XMLHttpRequest',
+                                                'Accept': 'application/json',
+                                            }
+                                        });
                                         setNotifications(notifications.map(notification => ({
                                             ...notification,
                                             read_at: new Date().toISOString()
@@ -327,6 +387,11 @@ const Nav = () => {
                                                 <span className="fw-bold"> {notification.data.job_title}</span>
                                             )}
                                         </p>
+                                        {notification.data.employer_name && (
+                                            <p className="small text-muted mb-1">
+                                                From: {notification.data.employer_name}
+                                            </p>
+                                        )}
                                         <span className="text-muted small">
                                             {formatDate(notification.created_at)}
                                         </span>
@@ -412,9 +477,9 @@ const Nav = () => {
                                             <li className="nav-item">
                                                 <Link className="nav-link px-3 text-primary fw-medium nav-hover" href="/about">About</Link>
                                             </li>
-                                            <li className="nav-item">
+                                            {/* <li className="nav-item">
                                                 <Link className="nav-link px-3 text-primary fw-medium nav-hover" href="/contact">Contact</Link>
-                                            </li>
+                                            </li> */}
                                             <li className="nav-item dropdown">
                                                 <Link className="nav-link dropdown-toggle px-3 text-primary fw-medium nav-hover" href="#" role="button" data-bs-toggle="dropdown">
                                                     Resources
@@ -513,10 +578,10 @@ const Nav = () => {
                                         </ul>
                                     </div>
                                 </nav>
-                                <div className="d-flex align-items-center">
+                                <div className="d-flex align-items-center me-5">
                                     {auth.user ? (
                                         <>
-                                            <Link href="/messages" className="btn btn-link position-relative me-3 text-primary">
+                                            <Link href="/messages" className="btn btn-link position-relative me-2 text-primary">
                                                 <i className="fas fa-envelope fa-lg"></i>
                                                 {messageCount > 0 && (
                                                     <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
@@ -527,6 +592,13 @@ const Nav = () => {
                                             {renderNotificationDropdown()}
                                             
                                             <div className="dropdown">
+                                            {/* <Link 
+                                                    href={route('job-alerts.index')} 
+                                                    className={`nav-link ${route().current('job-alerts.*') ? 'active' : ''}`}
+                                                    >
+                                                    <i className="fas fa-bell me-2"></i>
+                                                    Job Alerts
+                                                    </Link> */}
                                                 <Link
                                                     className="d-flex align-items-center text-dark text-decoration-none dropdown-toggle"
                                                     href="#"
@@ -707,14 +779,14 @@ const Nav = () => {
                                     <div className="mt-3">
                                         {auth.user ? (
                                             <div className="d-flex flex-column">
-                                                <Link href="/messages" className="btn btn-link text-primary mb-2" onClick={() => setIsMenuOpen(false)}>
+                                                {/* <Link href="/messages" className="btn btn-link text-primary mb-2" onClick={() => setIsMenuOpen(false)}>
                                                     <i className="fas fa-envelope me-2"></i>
                                                     Messages
                                                     {messageCount > 0 && (
                                                         <span className="badge bg-danger ms-2">{messageCount}</span>
                                                     )}
-                                                </Link>
-                                                <Link href="/notifications" className="btn btn-link text-primary mb-2" onClick={() => setIsMenuOpen(false)}>
+                                                </Link> */}
+                                                <Link href={route('notifications.index')} className="btn btn-link text-primary mb-2" onClick={() => setIsMenuOpen(false)}>
                                                     <i className="fas fa-bell me-2"></i>
                                                     Notifications
                                                     {alertCount > 0 && (

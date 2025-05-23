@@ -14,6 +14,8 @@ interface Props {
     flash?: {
         success?: string;
         error?: string;
+        info?: string;
+        warning?: string;
     };
     error?: string;
 }
@@ -27,7 +29,6 @@ interface EmployerProfileForm {
     company_name: string;
     company_website: string;
     company_size: string;
-    industry: string;
     company_description: string;
     location: string;
 }
@@ -41,19 +42,6 @@ const companySizes = [
     '1000+'
 ];
 
-const industries = [
-    'Technology',
-    'Healthcare',
-    'Finance',
-    'Education',
-    'Manufacturing',
-    'Retail',
-    'Construction',
-    'Transportation',
-    'Entertainment',
-    'Other'
-];
-
 export default function Create({ flash, error }: Props) {
     const [imageSrc, setImageSrc] = useState('/assets/img/logo/testimonial.png');
     
@@ -65,7 +53,6 @@ export default function Create({ flash, error }: Props) {
         company_name: '',
         company_website: '',
         company_size: '',
-        industry: '',
         company_description: '',
         location: '',
     });
@@ -80,7 +67,21 @@ export default function Create({ flash, error }: Props) {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        router.post(route('employee.profile.store'), data);
+        
+        // Ensure we have a fresh CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        
+        router.post(route('employee.profile.store'), data, {
+            headers: {
+                'X-CSRF-TOKEN': csrfToken || '',
+            },
+            onError: (errors) => {
+                if (errors.hasOwnProperty('_token')) {
+                    // CSRF token error - refresh the page to get a new token
+                    window.location.reload();
+                }
+            }
+        });
     };
 
     return (
@@ -101,6 +102,18 @@ export default function Create({ flash, error }: Props) {
                 {(flash?.error || error) && (
                     <div className="alert alert-danger alert-dismissible fade show" role="alert">
                         {flash?.error || error}
+                        <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                )}
+                {flash?.info && (
+                    <div className="alert alert-info alert-dismissible fade show" role="alert">
+                        {flash.info}
+                        <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                )}
+                {flash?.warning && (
+                    <div className="alert alert-warning alert-dismissible fade show" role="alert">
+                        {flash.warning}
                         <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 )}
@@ -221,24 +234,6 @@ export default function Create({ flash, error }: Props) {
                         </div>
 
                         <div>
-                            <Label htmlFor="industry">Industry</Label>
-                            <select
-                                id="industry"
-                                className="form-select"
-                                value={data.industry}
-                                onChange={e => setData('industry', e.target.value)}
-                                disabled={processing}
-                                required
-                            >
-                                <option value="">Select industry</option>
-                                {industries.map(industry => (
-                                    <option key={industry} value={industry}>{industry}</option>
-                                ))}
-                            </select>
-                            <InputError message={errors.industry} />
-                        </div>
-
-                        <div>
                             <Label htmlFor="location">Location</Label>
                             <Input
                                 id="location"
@@ -270,13 +265,13 @@ export default function Create({ flash, error }: Props) {
                     <div className="flex justify-end gap-4 mt-6">
                         <Button
                             type="button"
-                            className='btn btn-outline-secondary'
-                            onClick={() => router.visit(route('employee.profile.show'))}
+                            className="btn btn-outline-secondary"
+                            onClick={() => router.visit(route('home'))}
                             disabled={processing}
                         >
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={processing} className='btn btn-outline-success'>
+                        <Button type="submit" disabled={processing} className="btn btn-outline-success">
                             {processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
                             Create Profile
                         </Button>

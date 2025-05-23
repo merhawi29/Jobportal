@@ -14,7 +14,6 @@ interface Props {
         company_name: string;
         company_website: string;
         company_size: string;
-        industry: string;
         company_description: string;
         location: string;
     };
@@ -76,10 +75,6 @@ export default function Show({ employee, isOwnProfile = false, flash, error }: P
                             <Card className="p-4">
                                 <h2 className="text-lg font-semibold mb-4">Company Information</h2>
                                 <div className="space-y-3">
-                                    <div>
-                                        <span className="text-gray-600">Industry:</span>
-                                        <Badge className="ml-2">{employee.industry}</Badge>
-                                    </div>
                                     <div>
                                         <span className="text-gray-600">Company Size:</span>
                                         <Badge className="ml-2">{employee.company_size} employees</Badge>

@@ -10,94 +10,58 @@ use Illuminate\Support\Facades\Log;
 
 class NotificationController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $notifications = auth()->user()->notifications()
-            ->latest()
-            ->paginate(10);
-
-        // Transform the notifications to match the frontend structure
-        $formattedNotifications = $notifications->map(function ($notification) {
-            return [
-                'id' => $notification->id,
-                'type' => $notification->type,
-                'data' => $notification->data,
-                'read_at' => $notification->read_at,
-                'created_at' => $notification->created_at,
-            ];
-        });
-
-        return Inertia::render('JobSeeker/Notifications/Index', [
-            'alerts' => [
-                'data' => $formattedNotifications,
-                'current_page' => $notifications->currentPage(),
-                'last_page' => $notifications->lastPage(),
-                'total' => $notifications->total(),
-            ]
+        $user = $request->user();
+        $notifications = $user->notifications()->paginate(10);
+        
+        return Inertia::render('Notifications/Index', [
+            'notifications' => $notifications
         ]);
     }
-
-    public function markAsRead($id)
+    
+    public function markAsRead(Request $request, $id)
     {
-        try {
-            $notification = auth()->user()->notifications()->findOrFail($id);
+        $notification = $request->user()->notifications()->where('id', $id)->first();
+        
+        if ($notification) {
             $notification->markAsRead();
-            
-            Log::info('Notification marked as read', [
-                'notification_id' => $id,
-                'user_id' => auth()->id()
-            ]);
-
-            return response()->json(['success' => true]);
-        } catch (\Exception $e) {
-            Log::error('Failed to mark notification as read', [
-                'notification_id' => $id,
-                'error' => $e->getMessage()
-            ]);
-            return response()->json(['success' => false, 'message' => 'Failed to mark notification as read'], 500);
         }
+        
+        return response()->json(['success' => true]);
     }
     
-    public function getUnreadCount(): JsonResponse
+    public function markAllAsRead(Request $request)
     {
-        $count = auth()->user()->unreadNotifications()->count();
-        return response()->json(['count' => $count]);
+        $request->user()->unreadNotifications->markAsRead();
+        
+        return response()->json(['success' => true]);
     }
     
-    public function getLatestNotifications(): JsonResponse
+    /**
+     * Get the latest notifications for the authenticated user
+     */
+    public function getLatestNotifications(Request $request)
     {
-        $notifications = auth()->user()->notifications()
-            ->latest()
-            ->limit(5)
-            ->get()
-            ->map(function ($notification) {
-                return [
-                    'id' => $notification->id,
-                    'type' => $notification->type,
-                    'data' => $notification->data,
-                    'read_at' => $notification->read_at,
-                    'created_at' => $notification->created_at,
-                ];
-            });
-            
+        $user = $request->user();
+        $notifications = $user->notifications()->latest()->take(5)->get();
+        $unreadCount = $user->unreadNotifications()->count();
+        
         return response()->json([
             'notifications' => $notifications,
-            'unread_count' => auth()->user()->unreadNotifications()->count()
+            'unread_count' => $unreadCount
         ]);
     }
     
-    public function markAllAsRead(): JsonResponse
+    /**
+     * Get the unread notification count for the authenticated user
+     */
+    public function getUnreadCount(Request $request)
     {
-        try {
-            auth()->user()->unreadNotifications->markAsRead();
-            Log::info('All notifications marked as read', ['user_id' => auth()->id()]);
-            return response()->json(['success' => true]);
-        } catch (\Exception $e) {
-            Log::error('Failed to mark all notifications as read', [
-                'user_id' => auth()->id(),
-                'error' => $e->getMessage()
-            ]);
-            return response()->json(['success' => false, 'message' => 'Failed to mark all notifications as read'], 500);
-        }
+        $count = $request->user()->unreadNotifications()->count();
+        
+        return response()->json([
+            'count' => $count
+        ]);
     }
 }

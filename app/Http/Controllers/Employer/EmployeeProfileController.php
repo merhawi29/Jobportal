@@ -25,7 +25,6 @@ class EmployeeProfileController extends Controller
                 'company_name' => $profile->company_name,
                 'company_website' => $profile->company_website,
                 'company_size' => $profile->company_size,
-                'industry' => $profile->industry,
                 'company_description' => $profile->company_description,
                 'location' => $profile->location,
             ]
@@ -42,7 +41,6 @@ class EmployeeProfileController extends Controller
                 'company_name' => 'required|string|max:255',
                 'company_website' => 'nullable|url|max:255',
                 'company_size' => 'required|string|max:20',
-                'industry' => 'required|string|max:100',
                 'company_description' => 'required|string|max:1000',
                 'location' => 'required|string|max:255',
                 'photo' => 'nullable|image|max:2048', // 2MB max
@@ -66,12 +64,21 @@ class EmployeeProfileController extends Controller
                     'company_name' => $validated['company_name'],
                     'company_website' => $validated['company_website'] ?? null,
                     'company_size' => $validated['company_size'],
-                    'industry' => $validated['industry'],
                     'company_description' => $validated['company_description'],
                     'location' => $validated['location'],
                     'photo' => $photoPath,
                 ]
             );
+            
+            // Send profile completion notification
+            try {
+                // Queue the notification with a small delay
+                $when = now()->addSeconds(2);
+                $user->notify((new \App\Notifications\ProfileCompletedNotification())->delay($when));
+            } catch (\Exception $e) {
+                // Log error but don't block the process
+                \Illuminate\Support\Facades\Log::error('Failed to queue profile completion notification: ' . $e->getMessage());
+            }
 
             return redirect()
                 ->route('home')
@@ -111,7 +118,6 @@ class EmployeeProfileController extends Controller
                 'company_name' => $profile->company_name ?? '',
                 'company_website' => $profile->company_website,
                 'company_size' => $profile->company_size ?? '',
-                'industry' => $profile->industry ?? '',
                 'company_description' => $profile->company_description ?? '',
                 'location' => $profile->location ?? '',
             ],
@@ -134,7 +140,6 @@ class EmployeeProfileController extends Controller
                 'company_name' => $profile->company_name ?? '',
                 'company_website' => $profile->company_website,
                 'company_size' => $profile->company_size ?? '',
-                'industry' => $profile->industry ?? '',
                 'company_description' => $profile->company_description ?? '',
                 'location' => $profile->location ?? '',
             ]
@@ -153,7 +158,6 @@ class EmployeeProfileController extends Controller
                 'company_name' => 'required|string|max:255',
                 'company_website' => 'nullable|url|max:255',
                 'company_size' => 'required|string|max:20',
-                'industry' => 'required|string|max:100',
                 'company_description' => 'required|string|max:1000',
                 'location' => 'required|string|max:255',
                 'photo' => 'nullable|image|max:2048', // 2MB max
@@ -183,7 +187,6 @@ class EmployeeProfileController extends Controller
                         'company_name' => $validated['company_name'],
                         'company_website' => $validated['company_website'] ?? null,
                         'company_size' => $validated['company_size'],
-                        'industry' => $validated['industry'],
                         'company_description' => $validated['company_description'],
                         'location' => $validated['location'],
                         'photo' => $photoPath ?? $user->employeeProfile?->photo,

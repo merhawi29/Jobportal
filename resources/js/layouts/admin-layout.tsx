@@ -37,7 +37,6 @@ const navigation = [
         // ]
     // },
     { name: 'Jobs', href: '/admin/job-management', icon: Briefcase },
-    { name: 'Applications', href: '/admin/applications', icon: ClipboardList },
     { name: 'Verifications', href: '/admin/verifications', icon: CheckCircle2 },
     { 
         name: 'Content', 
@@ -164,6 +163,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     md:flex md:flex-col
                 `}>
                     <div className={`flex min-h-0 flex-1 flex-col border-r ${isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}>
+                        {/* Close button for mobile */}
+                        <div className="md:hidden flex justify-end p-2">
+                            <button
+                                onClick={() => setSidebarOpen(false)}
+                                className={`p-2 rounded-md ${isDarkMode ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`}
+                                aria-label="Close menu"
+                            >
+                                <X className="h-6 w-6" />
+                            </button>
+                        </div>
                         <div className="flex flex-1 flex-col overflow-y-auto pt-5 pb-4">
                             <nav className={`mt-5 flex-1 space-y-1 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} px-2`}>
                                 {navigation.map((item) => {

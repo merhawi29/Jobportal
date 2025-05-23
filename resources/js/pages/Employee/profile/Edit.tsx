@@ -20,7 +20,6 @@ interface Props {
         company_name: string;
         company_website: string;
         company_size: string;
-        industry: string;
         company_description: string;
         location: string;
     };
@@ -40,7 +39,6 @@ interface EmployerProfileForm {
     company_name: string;
     company_website: string;
     company_size: string;
-    industry: string;
     company_description: string;
     location: string;
 }
@@ -52,19 +50,6 @@ const companySizes = [
     '201-500',
     '501-1000',
     '1000+'
-];
-
-const industries = [
-    'Technology',
-    'Healthcare',
-    'Finance',
-    'Education',
-    'Manufacturing',
-    'Retail',
-    'Construction',
-    'Transportation',
-    'Entertainment',
-    'Other'
 ];
 
 export default function Edit({ employee, flash, error }: Props) {
@@ -99,12 +84,11 @@ export default function Edit({ employee, flash, error }: Props) {
     const { data, setData, post, processing, errors, progress } = useForm<EmployerProfileForm>({
         name: employee.name,
         email: employee.email,
-        phone: employee.phone,
+        phone: employee.phone || '',
         photo: null,
         company_name: employee.company_name,
         company_website: employee.company_website || '',
         company_size: employee.company_size,
-        industry: employee.industry,
         company_description: employee.company_description,
         location: employee.location,
     });
@@ -258,24 +242,6 @@ export default function Edit({ employee, flash, error }: Props) {
                                 ))}
                             </select>
                             <InputError message={errors.company_size} />
-                        </div>
-
-                        <div>
-                            <Label htmlFor="industry">Industry</Label>
-                            <select
-                                id="industry"
-                                className="form-select"
-                                value={data.industry}
-                                onChange={e => setData('industry', e.target.value)}
-                                disabled={processing}
-                                required
-                            >
-                                <option value="">Select industry</option>
-                                {industries.map(industry => (
-                                    <option key={industry} value={industry}>{industry}</option>
-                                ))}
-                            </select>
-                            <InputError message={errors.industry} />
                         </div>
 
                         <div>

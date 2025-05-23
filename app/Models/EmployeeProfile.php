@@ -18,7 +18,6 @@ class EmployeeProfile extends Model
         'company_name',
         'company_website',
         'company_size',
-        'industry',
         'company_description',
         'location',
         'country',

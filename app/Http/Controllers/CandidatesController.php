@@ -173,8 +173,15 @@ class CandidatesController extends Controller
             ->with(['jobSeekerProfile'])
             ->findOrFail($id);
         
+        // Get employer's current job listings
+        $jobs = \App\Models\JobList::where('user_id', $request->user()->id)
+            ->where('status', 'active')
+            ->select('id', 'title')
+            ->get();
+        
         return Inertia::render('Employer/Candidates/Show', [
-            'candidate' => $candidate
+            'candidate' => $candidate,
+            'jobs' => $jobs
         ]);
     }
 } 

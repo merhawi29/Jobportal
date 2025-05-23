@@ -276,6 +276,16 @@ class ProfileController extends Controller
         } else {
             $user->jobSeekerProfile()->create($profileData);
         }
+        
+        // Send profile completion notification
+        try {
+            // Queue the notification with a small delay
+            $when = now()->addSeconds(2);
+            $user->notify((new \App\Notifications\ProfileCompletedNotification())->delay($when));
+        } catch (\Exception $e) {
+            // Log error but don't block the process
+            \Illuminate\Support\Facades\Log::error('Failed to queue profile completion notification: ' . $e->getMessage());
+        }
 
         return redirect()->route('jobseeker.profile.show')
             ->with('success', 'Profile created successfully!');

@@ -129,8 +129,24 @@ class JobManagementController extends Controller
         // Update application status
         $application->update(['status' => 'interview_scheduled']);
 
-        // Notify the applicant
-        $application->user->notify(new InterviewScheduled($interview));
+        try {
+            // Notify the applicant
+            $application->user->notify(new InterviewScheduled($interview));
+            
+            // Log successful notification
+            \Illuminate\Support\Facades\Log::info('Interview notification sent successfully', [
+                'interview_id' => $interview->id,
+                'user_id' => $application->user->id
+            ]);
+        } catch (\Exception $e) {
+            // Log the error but don't fail the request
+            \Illuminate\Support\Facades\Log::error('Failed to send interview notification', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'interview_id' => $interview->id,
+                'user_id' => $application->user->id
+            ]);
+        }
 
         return redirect()->route('employer.applications.index')
             ->with('success', 'Interview scheduled successfully');

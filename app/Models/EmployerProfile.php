@@ -13,7 +13,6 @@ class EmployerProfile extends Model
         'user_id',
         'company_name',
         'company_website',
-        'industry',
         'company_size',
         'company_description',
         'location',

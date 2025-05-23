@@ -1,5 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
-import { FormEventHandler, useState } from 'react';
+import { FormEventHandler, useState, useEffect } from 'react';
 
 type LoginForm = {
     email: string;
@@ -15,9 +15,43 @@ export default function Login() {
     });
     const [showPassword, setShowPassword] = useState(false);
 
+    // Refresh CSRF token when login page loads
+    useEffect(() => {
+        // Check if token needs refresh
+        const lastActivity = sessionStorage.getItem('last_user_activity');
+        if (!lastActivity || Date.now() - parseInt(lastActivity) > 30 * 60 * 1000) {
+            fetch('/csrf-token')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.csrfToken) {
+                        document.querySelector('meta[name="csrf-token"]')?.setAttribute('content', data.csrfToken);
+                    }
+                })
+                .catch(error => console.error('Error refreshing CSRF token:', error));
+        }
+        
+        // Update last activity time
+        sessionStorage.setItem('last_user_activity', Date.now().toString());
+    }, []);
+
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        post(route('login'));
+        
+        // Get the current CSRF token from meta tag
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        
+        post(route('login'), {
+            headers: {
+                'X-CSRF-TOKEN': csrfToken || '',
+            },
+            onError: (errors) => {
+                // Handle CSRF token errors
+                if (errors.hasOwnProperty('_token')) {
+                    // CSRF token mismatch - refresh the page to get a new token
+                    window.location.reload();
+                }
+            },
+        });
     };
 
     return (
