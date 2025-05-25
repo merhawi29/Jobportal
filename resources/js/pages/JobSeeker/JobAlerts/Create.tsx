@@ -378,3 +378,4 @@ const JobAlertsCreate = ({ auth, categories, jobTypes }: CreateProps) => {
 };
 
 export default JobAlertsCreate;
+ 

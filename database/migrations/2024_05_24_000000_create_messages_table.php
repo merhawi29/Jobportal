@@ -9,7 +9,8 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up() {
+    public function up(): void
+    {
         Schema::create('messages', function (Blueprint $table) {
             $table->id();
             $table->foreignId('sender_id')->constrained('users')->onDelete('cascade');
@@ -17,6 +18,12 @@ return new class extends Migration
             $table->text('message');
             $table->timestamp('sent_at')->useCurrent();
             $table->timestamp('read_at')->nullable();
+            $table->timestamps();
+
+            // Add indexes for better query performance
+            $table->index(['sender_id', 'receiver_id']);
+            $table->index(['receiver_id', 'sender_id']);
+            $table->index('sent_at');
         });
     }
 
@@ -27,4 +34,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('messages');
     }
-};
+}; 

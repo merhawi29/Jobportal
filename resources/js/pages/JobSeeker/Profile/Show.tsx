@@ -268,14 +268,18 @@ export default function Show({ profile, isOwnProfile, flash, error }: Props) {
                                     </CardHeader>
                                     <CardContent>
                                         <div className="flex flex-wrap gap-2">
-                                            {profile.skills.map((skill, index) => (
-                                                <span
-                                                    key={index}
-                                                    className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm"
-                                                >
-                                                    {skill}
-                                                </span>
-                                            ))}
+                                            {profile.skills && profile.skills.length > 0 ? (
+                                                profile.skills.map((skill, index) => (
+                                                    <span
+                                                        key={index}
+                                                        className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm"
+                                                    >
+                                                        {skill}
+                                                    </span>
+                                                ))
+                                            ) : (
+                                                <span className="text-gray-500">No skills listed</span>
+                                            )}
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -292,12 +296,16 @@ export default function Show({ profile, isOwnProfile, flash, error }: Props) {
                                         </CardHeader>
                                         <CardContent>
                                             <div className="space-y-4">
-                                                {profile.education.map((edu, index) => (
-                                                    <div key={index} className="border-b last:border-0 pb-4 last:pb-0">
-                                                        <h4 className="font-semibold">{edu.institution}</h4>
-                                                        <p className="text-gray-600">{edu.degree}</p>
-                                                    </div>
-                                                ))}
+                                                {profile.education && profile.education.length > 0 ? (
+                                                    profile.education.map((edu, index) => (
+                                                        <div key={index} className="border-b last:border-0 pb-4 last:pb-0">
+                                                            <h4 className="font-semibold">{edu.institution}</h4>
+                                                            <p className="text-gray-600">{edu.degree}</p>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <span className="text-gray-500">No education history listed</span>
+                                                )}
                                             </div>
                                         </CardContent>
                                     </Card>

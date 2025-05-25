@@ -487,7 +487,7 @@ const Nav = () => {
                                                 <ul className="dropdown-menu">
                                                     <li><Link className="dropdown-item" href="/blog">Blog Posts</Link></li>
                                                     <li><Link className="dropdown-item" href="/career-resources">Career Resources</Link></li>
-                                                    <li><Link className="dropdown-item" href="/faq">FAQs</Link></li>
+                                                    <li><Link className="dropdown-item" href="/faqs">FAQs</Link></li>
                                                 </ul>
                                             </li>
                                             {isJobSeeker && (
@@ -498,6 +498,15 @@ const Nav = () => {
                                                 <ul className="dropdown-menu">
                                                     <li><Link className="dropdown-item" href="/applications">Applications</Link></li>
                                                     <li><Link className="dropdown-item" href="/jobseeker/saved-jobs">Saved Jobs</Link></li>
+                                                    <li>
+                                                    <Link 
+                                                    href={route('job-alerts.index')} 
+                                                    className={`nav-link ${route().current('job-alerts.*') ? 'active' : ''}`}
+                                                    >
+                                                    <i className="fas fa-bell me-2"></i>
+                                                    Job Alerts
+                                                    </Link>
+                                                    </li>
                                                     </ul>
                                                 </li>
                                             )}
@@ -592,13 +601,7 @@ const Nav = () => {
                                             {renderNotificationDropdown()}
                                             
                                             <div className="dropdown">
-                                            {/* <Link 
-                                                    href={route('job-alerts.index')} 
-                                                    className={`nav-link ${route().current('job-alerts.*') ? 'active' : ''}`}
-                                                    >
-                                                    <i className="fas fa-bell me-2"></i>
-                                                    Job Alerts
-                                                    </Link> */}
+                                            
                                                 <Link
                                                     className="d-flex align-items-center text-dark text-decoration-none dropdown-toggle"
                                                     href="#"

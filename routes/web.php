@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\CandidatesController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\ContactController;
 
 Route::get('/', function () {
     return Inertia::render('Home');
@@ -31,6 +32,11 @@ Route::get('/', function () {
 Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/{job}', [JobController::class, 'show'])->name('jobs.show');
 Route::get('/companies/{user}', [EmployeeProfileController::class, 'show'])->name('companies.show');
+
+// About page route
+Route::get('/about', function () {
+    return Inertia::render('About');
+})->name('about');
 
 // Career Resources route
 Route::get('/career-resources', function () {
@@ -52,6 +58,14 @@ Route::get('/faqs', function () {
 Route::get('/csrf-token', function() {
     return response()->json(['csrfToken' => csrf_token()]);
 });
+
+// Public routes
+Route::get('/about', function () {
+    return Inertia::render('About');
+})->name('about');
+
+Route::get('/contact', [ContactController::class, 'show'])->name('contact.show');
+Route::post('/contact', [ContactController::class, 'submit'])->name('contact.submit');
 
 // Protected job routes
 Route::middleware(['auth'])->group(function () {
@@ -280,6 +294,30 @@ Route::middleware(['auth', 'verified', 'ensure.profile.complete'])->prefix('empl
     // Candidates search routes - move these inside this group
     Route::get('/candidates', [CandidatesController::class, 'search'])->name('candidates.search');
     Route::get('/candidates/{id}', [CandidatesController::class, 'show'])->name('candidates.show');
+});
+
+Route::get('/test-welcome-notification', function () {
+    $user = auth()->user();
+    if (!$user) {
+        return response()->json(['error' => 'User not authenticated'], 401);
+    }
+    
+    try {
+        $user->notify(new \App\Notifications\WelcomeNotification());
+        return response()->json([
+            'success' => true,
+            'message' => 'Welcome notification sent successfully'
+        ]);
+    } catch (\Exception $e) {
+        \Illuminate\Support\Facades\Log::error('Failed to send welcome notification', [
+            'error' => $e->getMessage(),
+            'user_id' => $user->id
+        ]);
+        return response()->json([
+            'error' => 'Failed to send notification',
+            'message' => $e->getMessage()
+        ], 500);
+    }
 });
 
 require __DIR__.'/settings.php';

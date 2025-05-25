@@ -26,6 +26,7 @@
     },
     "dependencies": {
         "@headlessui/react": "^2.2.0",
+        "@heroicons/react": "^2.2.0",
         "@inertiajs/react": "^2.0.0",
         "@prisma/client": "^6.5.0",
         "@radix-ui/react-avatar": "^1.1.3",

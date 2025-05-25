@@ -61,15 +61,23 @@ export default function Index({ notifications, auth }: Props) {
   };
 
   return (
-    <AppLayout>
+    // <AppLayout>
+    <>
+    
       <Head title="Notifications" />
 
       <div className="container py-5">
+      <div className="mb-6">
+        <a href="/" className="btn btn-outline-secondary">
+           <i className="fas fa-home me-2"></i>
+             Back to Home
+        </a>
+        </div>
         <div className="row">
           <div className="col-12">
             <div className="card">
               <div className="card-header d-flex justify-content-between align-items-center">
-                <h1 className="card-title mb-0">Notifications</h1>
+                <h1 className="card-title mb-0">Notification</h1>
                 <div>
                   <button 
                     className="btn btn-sm btn-outline-primary"
@@ -147,6 +155,7 @@ export default function Index({ notifications, auth }: Props) {
           </div>
         </div>
       </div>
-    </AppLayout>
+      </>
+    // </AppLayout>
   );
 } 

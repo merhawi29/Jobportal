@@ -4,6 +4,7 @@ import { router } from '@inertiajs/react';
 import axios from 'axios';
 import AuthenticatedLayout from '@/layouts/AuthenticatedLayout';
 import { PageProps } from '@inertiajs/core';
+import moment from 'moment';
 
 interface Message {
     id: number;
@@ -11,6 +12,7 @@ interface Message {
     receiver_id: number;
     message: string;
     sent_at: string;
+    read_at: string | null;
     sender: {
         id: number;
         name: string;
@@ -49,6 +51,7 @@ const MessagesIndex = () => {
     const [selectedUser, setSelectedUser] = useState<number | null>(null);
     const [newMessageText, setNewMessageText] = useState('');
     const [isSearching, setIsSearching] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     
     // Fetch conversations on component mount
     useEffect(() => {
@@ -76,8 +79,11 @@ const MessagesIndex = () => {
             if (response.data.conversations.length > 0 && !activeConversation) {
                 setActiveConversation(response.data.conversations[0].user_id);
             }
+            setLoading(false);
         } catch (error) {
             console.error('Error fetching conversations:', error);
+            setError('Failed to load conversations');
+            setLoading(false);
         }
     };
     
@@ -100,6 +106,7 @@ const MessagesIndex = () => {
             setLoading(false);
         } catch (error) {
             console.error('Error fetching messages:', error);
+            setError('Failed to load messages');
             setLoading(false);
         }
     };
@@ -129,6 +136,7 @@ const MessagesIndex = () => {
             setNewMessage('');
         } catch (error) {
             console.error('Error sending message:', error);
+            setError('Failed to send message');
         }
     };
     
@@ -224,6 +232,7 @@ const MessagesIndex = () => {
             await fetchConversations();
         } catch (error) {
             console.error('Error sending new message:', error);
+            setError('Failed to send new message');
         }
     };
     
@@ -235,10 +244,14 @@ const MessagesIndex = () => {
             <Head title="Messages" />
             
             <div className="container py-5">
+            <div className="mb-3">
+        <a href="/" className="btn btn-outline-secondary">
+           <i className="fas fa-home me-2"></i>
+             Back to Home
+        </a>
+        </div>
                 <div className="row">
-                    <div className="col-12">
-                        <h2 className="mb-4">Messages</h2>
-                        
+                    <div className="col-12">                        
                         <div className="card shadow-sm">
                             <div className="card-body p-0">
                                 <div className="row g-0">
@@ -256,10 +269,10 @@ const MessagesIndex = () => {
                                                 </button>
                                             </div>
                                             
-                                            {conversations.length === 0 ? (
+                                            {loading ? (
                                                 <div className="p-4 text-center text-muted">
                                                     <i className="fas fa-comments fa-2x mb-2"></i>
-                                                    <p>No conversations yet</p>
+                                                    <p>{error || 'Loading conversations...'}</p>
                                                     <button 
                                                         className="btn btn-primary" 
                                                         onClick={() => setShowNewMessageModal(true)}
